@@ -2,10 +2,10 @@
 
 Commands to convert Pester tests.
 
-[![Build Status](https://dev.azure.com/viscalyx/Viscalyx.GitHub/_apis/build/status/viscalyx.Viscalyx.GitHub?branchName=main)](https://dev.azure.com/viscalyx/Viscalyx.GitHub/_build/latest?definitionId=34&branchName=main)
-![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/viscalyx/Viscalyx.GitHub/34/main)
+[![Build Status](https://dev.azure.com/viscalyx/Viscalyx.GitHub/_apis/build/status/viscalyx.Viscalyx.GitHub?branchName=main)](https://dev.azure.com/viscalyx/Viscalyx.GitHub/_build/latest?definitionId=37&branchName=main)
+![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/viscalyx/Viscalyx.GitHub/37/main)
 [![codecov](https://codecov.io/gh/viscalyx/Viscalyx.GitHub/branch/main/graph/badge.svg)](https://codecov.io/gh/viscalyx/Viscalyx.GitHub)
-[![Azure DevOps tests](https://img.shields.io/azure-devops/tests/viscalyx/Viscalyx.GitHub/34/main)](https://viscalyx.visualstudio.com/Viscalyx.GitHub/_test/analytics?definitionId=34&contextType=build)
+[![Azure DevOps tests](https://img.shields.io/azure-devops/tests/viscalyx/Viscalyx.GitHub/37/main)](https://viscalyx.visualstudio.com/Viscalyx.GitHub/_test/analytics?definitionId=37&contextType=build)
 [![PowerShell Gallery (with prerelease)](https://img.shields.io/powershellgallery/vpre/Viscalyx.GitHub?label=Viscalyx.GitHub%20Preview)](https://www.powershellgallery.com/packages/Viscalyx.GitHub/)
 [![PowerShell Gallery](https://img.shields.io/powershellgallery/v/Viscalyx.GitHub?label=Viscalyx.GitHub)](https://www.powershellgallery.com/packages/Viscalyx.GitHub/)
 

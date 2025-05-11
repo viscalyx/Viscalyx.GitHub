@@ -14,3 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   about assets from GitHub repository releases
 - Private function `Convert-SecureStringAsPlainText` to safely handle secure
   string conversions for GitHub authentication tokens
+
+### Fixed
+
+- Fixed README badges.
