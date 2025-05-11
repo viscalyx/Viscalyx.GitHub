@@ -6,10 +6,10 @@
 #>
 
 ConvertFrom-StringData @'
-    # Get-GitHubReleaseAssetMetadata command strings
-    Get_GitHubReleaseAssetMetadata_MissingAssetName = The specified asset name was not found in the repository releases.
-    Get_GitHubReleaseAssetMetadata_FoundRelease = Found release {0}.
-    Get_GitHubReleaseAssetMetadata_FoundAsset = Found asset(s) {0}.
+    # Get-GitHubReleaseAsset command strings
+    Get_GitHubReleaseAsset_MissingAssetName = The specified asset name was not found in the repository releases.
+    Get_GitHubReleaseAsset_FoundRelease = Found release {0}.
+    Get_GitHubReleaseAsset_FoundAsset = Found asset(s) {0}.
 
     # Get-GitHubRelease function strings
     Get_GitHubRelease_ProcessingRepository = Processing repository {0}/{1}.

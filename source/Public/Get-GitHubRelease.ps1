@@ -142,7 +142,11 @@ function Get-GitHubRelease
 
     if ($Latest)
     {
-        # Sort by created_at descending to get the most recent release
+        <#
+            Sort by created_at descending to get the most recent release. The
+            created_at attribute is the date of the commit used for the release,
+            and not the date when the release was drafted or published.
+        #>
         $latestRelease = $releases |
             Sort-Object -Property 'created_at' -Descending |
             Select-Object -First 1
