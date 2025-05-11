@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "Virtual PowerShell User Group #testing channel"
+    url: https://poshcode.org/
+    about: "To talk to the community and maintainers of Viscalyx.GitHub, please visit the #testing channel."
