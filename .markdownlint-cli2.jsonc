@@ -1,0 +1,18 @@
+{
+  // This is used for VS Code extension. Documented here: https://github.com/DavidAnson/markdownlint-cli2?tab=readme-ov-file#configuration
+  // Example: https://github.com/DavidAnson/markdownlint/blob/v0.32.1/schema/.markdownlint.jsonc
+  "config": {
+    "default": true,
+    "MD029": {
+        "style": "one"
+    },
+    "MD013": true,
+    "MD024": false,
+    "MD034": false,
+    "no-hard-tabs": true
+  },
+  "ignores": [
+      ".github/CODEOWNERS"
+  ],
+  "gitignore": true
+}
