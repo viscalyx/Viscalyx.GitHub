@@ -40,25 +40,25 @@
         If not specified, the command will use anonymous access which has rate limits.
 
     .EXAMPLE
-        Get-GitHubReleaseAssetMetadata -OwnerName 'PowerShell' -RepositoryName 'PowerShell' -AssetName 'PowerShell-*-win-x64.msi'
+        Get-GitHubReleaseAsset -OwnerName 'PowerShell' -RepositoryName 'PowerShell' -AssetName 'PowerShell-*-win-x64.msi'
 
         This example retrieves metadata for the Windows x64 MSI installer asset from the latest
         full release of the PowerShell/PowerShell repository.
 
     .EXAMPLE
-        Get-GitHubReleaseAssetMetadata -OwnerName 'PowerShell' -RepositoryName 'PowerShell' -AssetName 'PowerShell-*-win-x64.msi' -IncludePrerelease
+        Get-GitHubReleaseAsset -OwnerName 'PowerShell' -RepositoryName 'PowerShell' -AssetName 'PowerShell-*-win-x64.msi' -IncludePrerelease
 
         This example retrieves metadata for the Windows x64 MSI installer asset from the latest
         release (including prereleases) of the PowerShell/PowerShell repository.
 
     .EXAMPLE
-        Get-GitHubReleaseAssetMetadata -OwnerName 'Microsoft' -RepositoryName 'WSL' -AssetName '*.x64' -Token 'ghp_1234567890abcdef'
+        Get-GitHubReleaseAsset -OwnerName 'Microsoft' -RepositoryName 'WSL' -AssetName '*.x64' -Token 'ghp_1234567890abcdef'
 
         This example retrieves metadata for the AppX bundle asset from the latest release of the
         Microsoft/WSL repository using a GitHub personal access token for authentication.
 
     .EXAMPLE
-        Get-GitHubReleaseAssetMetadata -OwnerName 'PowerShell' -RepositoryName 'PowerShell' -IncludePrerelease -IncludeDraft
+        Get-GitHubReleaseAsset -OwnerName 'PowerShell' -RepositoryName 'PowerShell' -IncludePrerelease -IncludeDraft
 
         This example retrieves metadata for all assets from all releases, including prereleases and drafts,
         of the PowerShell/PowerShell repository.
@@ -67,7 +67,7 @@
         This command requires internet connectivity to access the GitHub API.
         GitHub API rate limits may apply for unauthenticated requests.
 #>
-function Get-GitHubReleaseAssetMetadata
+function Get-GitHubReleaseAsset
 {
     [CmdletBinding()]
     [OutputType([PSCustomObject])]
@@ -112,7 +112,7 @@ function Get-GitHubReleaseAssetMetadata
         return $null
     }
 
-    Write-Verbose -Message ($script:localizedData.Get_GitHubReleaseAssetMetadata_FoundRelease -f ($release.name -join ', '))
+    Write-Verbose -Message ($script:localizedData.Get_GitHubReleaseAsset_FoundRelease -f ($release.name -join ', '))
 
     if ($AssetName)
     {
@@ -125,7 +125,7 @@ function Get-GitHubReleaseAssetMetadata
         if (-not $matchingAssets -or $matchingAssets.Count -eq 0)
         {
             $writeErrorParameters = @{
-                Message      = $script:localizedData.Get_GitHubReleaseAssetMetadata_MissingAssetName -f $_.Exception.Message
+                Message      = $script:localizedData.Get_GitHubReleaseAsset_MissingAssetName -f $_.Exception.Message
                 Category     = 'ObjectNotFound'
                 ErrorId      = 'GGHRAM0001' # cSpell: disable-line
                 TargetObject = $AssetName
@@ -142,7 +142,7 @@ function Get-GitHubReleaseAssetMetadata
     }
 
     Write-Verbose -Message (
-        $script:localizedData.Get_GitHubReleaseAssetMetadata_FoundAsset -f ($matchingAssets.name -join ', ')
+        $script:localizedData.Get_GitHubReleaseAsset_FoundAsset -f ($matchingAssets.name -join ', ')
     )
 
     return $matchingAssets

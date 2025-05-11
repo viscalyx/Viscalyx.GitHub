@@ -42,7 +42,7 @@ AfterAll {
     Get-Module -Name $script:dscModuleName -All | Remove-Module -Force
 }
 
-Describe 'Get-GitHubReleaseAssetMetadata' {
+Describe 'Get-GitHubReleaseAsset' {
     BeforeAll {
         $mockReleaseDate = Get-Date
 
@@ -91,7 +91,7 @@ Describe 'Get-GitHubReleaseAssetMetadata' {
         }
 
         It 'Should return the correct asset metadata' {
-            $result = Get-GitHubReleaseAssetMetadata @testParams
+            $result = Get-GitHubReleaseAsset @testParams
 
             $result | Should -Not -BeNullOrEmpty
             $result.Name | Should -Be 'app-v1.0.0.zip'
@@ -111,7 +111,7 @@ Describe 'Get-GitHubReleaseAssetMetadata' {
         }
 
         It 'Should return the metadata for the matching asset' {
-            $result = Get-GitHubReleaseAssetMetadata @testParams
+            $result = Get-GitHubReleaseAsset @testParams
 
             $result | Should -Not -BeNullOrEmpty
             $result.Name | Should -Be 'app-v1.0.0.zip'
@@ -129,7 +129,7 @@ Describe 'Get-GitHubReleaseAssetMetadata' {
         }
 
         It 'Should call Get-GitHubRelease with IncludePrerelease parameter' {
-            Get-GitHubReleaseAssetMetadata @testParams
+            Get-GitHubReleaseAsset @testParams
 
             Should -Invoke -CommandName Get-GitHubRelease -ParameterFilter {
                 $OwnerName -eq 'testOwner' -and
@@ -150,7 +150,7 @@ Describe 'Get-GitHubReleaseAssetMetadata' {
         }
 
         It 'Should call Get-GitHubRelease with Token parameter' {
-            Get-GitHubReleaseAssetMetadata @testParams
+            Get-GitHubReleaseAsset @testParams
 
             Should -Invoke -CommandName Get-GitHubRelease -ParameterFilter {
                 $OwnerName -eq 'testOwner' -and
@@ -174,7 +174,7 @@ Describe 'Get-GitHubReleaseAssetMetadata' {
         }
 
         It 'Should return null' {
-            $result = Get-GitHubReleaseAssetMetadata @testParams
+            $result = Get-GitHubReleaseAsset @testParams
 
             $result | Should -BeNullOrEmpty
         }
@@ -189,13 +189,13 @@ Describe 'Get-GitHubReleaseAssetMetadata' {
             }
 
             $mockLocalizedStringMissingAsset = InModuleScope -ScriptBlock {
-                $script:localizedData.Get_GitHubReleaseAssetMetadata_MissingAssetName
+                $script:localizedData.Get_GitHubReleaseAsset_MissingAssetName
             }
         }
 
         It 'Should return null and write an error' {
             {
-                Get-GitHubReleaseAssetMetadata @testParams -ErrorAction 'Stop'
+                Get-GitHubReleaseAsset @testParams -ErrorAction 'Stop'
             } | Should -Throw -ExpectedMessage $mockLocalizedStringMissingAsset
 
         }

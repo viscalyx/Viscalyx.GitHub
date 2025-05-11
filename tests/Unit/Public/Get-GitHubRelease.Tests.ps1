@@ -181,7 +181,7 @@ Describe 'Get-GitHubRelease' {
             }
 
             $errorMessage = InModuleScope -ScriptBlock {
-                $script:localizedData.Get_GitHubReleaseAssetMetadata_Error_ApiRequest -f 'API request failed'
+                $script:localizedData.Get_GitHubRelease_Error_ApiRequest -f 'API request failed'
             }
         }
 

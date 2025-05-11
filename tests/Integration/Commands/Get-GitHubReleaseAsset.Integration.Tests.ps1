@@ -29,7 +29,7 @@ BeforeAll {
     Import-Module -Name $script:dscModuleName
 }
 
-Describe 'Get-GitHubReleaseAssetMetadata' {
+Describe 'Get-GitHubReleaseAsset' {
     Context 'When retrieving release asset metadata from a public repository' {
         BeforeAll {
             $testParams = @{
@@ -40,37 +40,31 @@ Describe 'Get-GitHubReleaseAssetMetadata' {
         }
 
         It 'Should not throw when retrieving the latest release asset' {
-            { Get-GitHubReleaseAssetMetadata @testParams } | Should -Not -Throw
+            { Get-GitHubReleaseAsset @testParams } | Should -Not -Throw
         }
 
         It 'Should return the correct metadata format' {
-            $result = Get-GitHubReleaseAssetMetadata @testParams
+            $result = Get-GitHubReleaseAsset @testParams
 
             $result | Should -Not -BeNullOrEmpty
             $result.Name | Should -Match 'PowerShell-.*\.zip$'
             $result.Size | Should -BeGreaterThan 0
-            $result.DownloadUrl | Should -Match 'https://github.com/PowerShell/PowerShell/releases/download/.*'
-            $result.ContentType | Should -Not -BeNullOrEmpty
-            $result.ReleaseTag | Should -Match '^v[0-9]+\.[0-9]+\.[0-9]+$'
-            $result.ReleaseName | Should -Not -BeNullOrEmpty
-            $result.IsPrerelease | Should -Not -BeNullOrEmpty
-            $result.CreatedDate | Should -BeOfType [DateTime]
-            $result.PublishedDate | Should -BeOfType [DateTime]
+            $result.browser_download_url | Should -Match 'https://github.com/PowerShell/PowerShell/releases/download/.*'
         }
     }
 
-    Context 'When retrieving release asset with AllowPrerelease' {
+    Context 'When retrieving release asset with IncludePrerelease' {
         BeforeAll {
             $testParams = @{
                 OwnerName = 'PowerShell'
                 RepositoryName = 'PowerShell'
                 AssetName = 'PowerShell-*.zip'
-                AllowPrerelease = $true
+                IncludePrerelease = $true
             }
         }
 
         It 'Should not throw when retrieving the latest release asset including prereleases' {
-            { Get-GitHubReleaseAssetMetadata @testParams } | Should -Not -Throw
+            { Get-GitHubReleaseAsset @testParams } | Should -Not -Throw
         }
     }
 
@@ -84,7 +78,7 @@ Describe 'Get-GitHubReleaseAssetMetadata' {
         }
 
         It 'Should throw when accessing a nonexistent repository' {
-            { Get-GitHubReleaseAssetMetadata @testParams -ErrorAction Stop } | Should -Throw
+            { Get-GitHubReleaseAsset @testParams -ErrorAction 'Stop' } | Should -Throw
         }
     }
 
@@ -98,10 +92,9 @@ Describe 'Get-GitHubReleaseAssetMetadata' {
         }
 
         It 'Should not throw but return null when the asset is not found' {
-            $result = Get-GitHubReleaseAssetMetadata @testParams -ErrorVariable testError
-
-            $result | Should -BeNullOrEmpty
-            $testError | Should -Not -BeNullOrEmpty
+            {
+                $result = Get-GitHubReleaseAsset @testParams -ErrorAction 'Stop'
+            } |  Should -Throw
         }
     }
 }
