@@ -14,6 +14,14 @@
         The command returns metadata including the asset name, size, download URL,
         release version, and other relevant information for matching assets.
 
+        This command can either fetch releases directly from GitHub or accept
+        pre-fetched release objects through the InputObject parameter.
+
+    .PARAMETER InputObject
+        One or more release objects from GitHub. These objects should be the output
+        from Get-GitHubRelease. This parameter enables piping releases directly into
+        this command.
+
     .PARAMETER OwnerName
         The name of the repository owner.
 
@@ -63,87 +71,119 @@
         This example retrieves metadata for all assets from all releases, including prereleases and drafts,
         of the PowerShell/PowerShell repository.
 
+    .EXAMPLE
+        Get-GitHubRelease -OwnerName 'PowerShell' -RepositoryName 'PowerShell' | Get-GitHubReleaseAsset -AssetName 'PowerShell-*-win-x64.msi'
+
+        This example pipes releases from Get-GitHubRelease and retrieves metadata for the Windows x64 MSI installer assets.
+
     .NOTES
-        This command requires internet connectivity to access the GitHub API.
+        This command requires internet connectivity to access the GitHub API when using the ByRepository parameter set.
         GitHub API rate limits may apply for unauthenticated requests.
 #>
 function Get-GitHubReleaseAsset
 {
-    [CmdletBinding()]
+    [CmdletBinding(DefaultParameterSetName = 'ByRepository')]
     [OutputType([PSCustomObject])]
     param
     (
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, ParameterSetName = 'ByInputObject', ValueFromPipeline = $true)]
+        [PSCustomObject[]]
+        $InputObject,
+
+        [Parameter(Mandatory = $true, ParameterSetName = 'ByRepository')]
         [System.String]
         $OwnerName,
 
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $true, ParameterSetName = 'ByRepository')]
         [System.String]
         $RepositoryName,
 
-        [Parameter()]
+        [Parameter(ParameterSetName = 'ByRepository')]
         [System.Management.Automation.SwitchParameter]
         $Latest,
 
-        [Parameter()]
+        [Parameter(ParameterSetName = 'ByRepository')]
         [System.Management.Automation.SwitchParameter]
         $IncludePrerelease,
 
-        [Parameter()]
+        [Parameter(ParameterSetName = 'ByRepository')]
         [System.Management.Automation.SwitchParameter]
         $IncludeDraft,
 
+        [Parameter(ParameterSetName = 'ByRepository')]
+        [System.Security.SecureString]
+        $Token,
+
         [Parameter()]
         [System.String]
-        $AssetName,
-
-        [Parameter()]
-        [System.Security.SecureString]
-        $Token
+        $AssetName
     )
 
-    $getGitHubReleaseParameters = @{} + $PSBoundParameters
-    $getGitHubReleaseParameters.Remove('AssetName')
-
-    $release = Get-GitHubRelease @getGitHubReleaseParameters
-
-    if (-not $release)
+    begin
     {
-        return $null
+        $releases = @()
     }
 
-    Write-Verbose -Message ($script:localizedData.Get_GitHubReleaseAsset_FoundRelease -f ($release.name -join ', '))
-
-    if ($AssetName)
+    process
     {
-        # Find the requested asset using wildcard matching
-        $matchingAssets = $release.assets |
-            Where-Object -FilterScript {
-                $_.name -like $AssetName
-            }
-
-        if (-not $matchingAssets -or $matchingAssets.Count -eq 0)
+        if ($PSCmdlet.ParameterSetName -eq 'ByRepository')
         {
-            $writeErrorParameters = @{
-                Message      = $script:localizedData.Get_GitHubReleaseAsset_MissingAssetName -f $_.Exception.Message
-                Category     = 'ObjectNotFound'
-                ErrorId      = 'GGHRAM0001' # cSpell: disable-line
-                TargetObject = $AssetName
+            $getGitHubReleaseParameters = @{} + $PSBoundParameters
+            $getGitHubReleaseParameters.Remove('AssetName')
+
+            $releaseFromRepo = Get-GitHubRelease @getGitHubReleaseParameters
+
+            if (-not $releaseFromRepo)
+            {
+                return
             }
 
-            Write-Error @writeErrorParameters
-
-            return $null
+            $releases += $releaseFromRepo
+        }
+        else
+        {
+            $releases += $InputObject
         }
     }
-    else
+
+    end
     {
-        $matchingAssets = $release.assets
+        Write-Verbose -Message ($script:localizedData.Get_GitHubReleaseAsset_FoundRelease -f ($releases.name -join ', '))
+
+        foreach ($release in $releases)
+        {
+            if ($AssetName)
+            {
+                # Find the requested asset using wildcard matching
+                $matchingAssets = $release.assets |
+                    Where-Object -FilterScript {
+                        $_.name -like $AssetName
+                    }
+
+                if (-not $matchingAssets -or $matchingAssets.Count -eq 0)
+                {
+                    $writeErrorParameters = @{
+                        Message      = $script:localizedData.Get_GitHubReleaseAsset_MissingAssetName -f $AssetName
+                        Category     = 'ObjectNotFound'
+                        ErrorId      = 'GGHRAM0001' # cSpell: disable-line
+                        TargetObject = $AssetName
+                    }
+
+                    Write-Error @writeErrorParameters
+
+                    continue
+                }
+            }
+            else
+            {
+                $matchingAssets = $release.assets
+            }
+
+            Write-Verbose -Message (
+                $script:localizedData.Get_GitHubReleaseAsset_FoundAsset -f ($matchingAssets.name -join ', ')
+            )
+
+            $matchingAssets
+        }
     }
-
-    Write-Verbose -Message (
-        $script:localizedData.Get_GitHubReleaseAsset_FoundAsset -f ($matchingAssets.name -join ', ')
-    )
-
-    return $matchingAssets
 }

@@ -97,4 +97,26 @@ Describe 'Get-GitHubReleaseAsset' {
             } |  Should -Throw
         }
     }
+
+    Context 'When passing release though pipeline' {
+        BeforeAll {
+            $testParams = @{
+                OwnerName = 'PowerShell'
+                RepositoryName = 'PowerShell'
+                IncludePrerelease = $true
+            }
+        }
+
+        It 'Should not throw when retrieving the latest release asset including prereleases' {
+            $release = Get-GitHubRelease @testParams
+            $release | Should -Not -BeNullOrEmpty
+
+            $result = $release | Get-GitHubReleaseAsset -AssetName 'PowerShell-*.zip'
+
+            $result | Should -Not -BeNullOrEmpty
+            $result.Name | Should -Match 'PowerShell-.*\.zip$'
+            $result.Size | Should -BeGreaterThan 0
+            $result.browser_download_url | Should -Match 'https://github.com/PowerShell/PowerShell/releases/download/.*'
+        }
+    }
 }
