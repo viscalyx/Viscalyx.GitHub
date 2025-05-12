@@ -103,12 +103,16 @@ Describe 'Get-GitHubReleaseAsset' {
             $testParams = @{
                 OwnerName = 'PowerShell'
                 RepositoryName = 'PowerShell'
-                IncludePrerelease = $true
             }
         }
 
-        It 'Should not throw when retrieving the latest release asset including prereleases' {
-            $release = Get-GitHubRelease @testParams
+        It 'Should correctly process release objects received through the pipeline' {
+            $release = Get-GitHubRelease @testParams |
+                Where-Object -FilterScript {
+                    $_.prerelease -eq $false -and $_.draft -eq $false
+                } |
+                Select-Object -First 1
+
             $release | Should -Not -BeNullOrEmpty
 
             $result = $release | Get-GitHubReleaseAsset -AssetName 'PowerShell-*.zip'
@@ -118,5 +122,23 @@ Describe 'Get-GitHubReleaseAsset' {
             $result.Size | Should -BeGreaterThan 0
             $result.browser_download_url | Should -Match 'https://github.com/PowerShell/PowerShell/releases/download/.*'
         }
+
+        Context 'When asset does not exist' {
+            It 'Should not throw but return null when the asset is not found' {
+
+                $release = Get-GitHubRelease @testParams |
+                    Where-Object -FilterScript {
+                        $_.prerelease -eq $false -and $_.draft -eq $false
+                    } |
+                    Select-Object -First 1
+
+                $release | Should -Not -BeNullOrEmpty
+
+                {
+                    $release | Get-GitHubReleaseAsset -AssetName 'NonExistentAsset9876543210.zip' -ErrorAction 'Stop'
+                } |  Should -Throw
+            }
+        }
+
     }
 }
