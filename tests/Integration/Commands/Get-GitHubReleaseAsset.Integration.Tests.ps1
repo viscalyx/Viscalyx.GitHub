@@ -98,7 +98,7 @@ Describe 'Get-GitHubReleaseAsset' {
         }
     }
 
-    Context 'When passing release though pipeline' {
+    Context 'When passing release through pipeline' {
         BeforeAll {
             $testParams = @{
                 OwnerName = 'PowerShell'
