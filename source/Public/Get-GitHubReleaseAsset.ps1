@@ -163,7 +163,7 @@ function Get-GitHubReleaseAsset
                 if (-not $matchingAssets -or $matchingAssets.Count -eq 0)
                 {
                     $writeErrorParameters = @{
-                        Message      = $script:localizedData.Get_GitHubReleaseAsset_MissingAssetName -f $AssetName
+                        Message      = $script:localizedData.Get_GitHubReleaseAsset_MissingAssetName
                         Category     = 'ObjectNotFound'
                         ErrorId      = 'GGHRAM0001' # cSpell: disable-line
                         TargetObject = $AssetName

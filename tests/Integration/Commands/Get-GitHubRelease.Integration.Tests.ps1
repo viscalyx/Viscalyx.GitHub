@@ -86,7 +86,7 @@ Describe 'Get-GitHubRelease' {
             $testRepoName = 'PowerShell'
         }
 
-        It 'Should include prerelease versions if they exist' -Skip:($hasPrerelease -eq 0) {
+        It 'Should include prerelease versions if they exist' {
             $releases = Get-GitHubRelease -OwnerName $testRepoOwner -RepositoryName $testRepoName -IncludePrerelease
 
             $prereleases = $releases |
