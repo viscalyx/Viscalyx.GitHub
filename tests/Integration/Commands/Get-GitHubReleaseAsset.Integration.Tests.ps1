@@ -32,7 +32,7 @@ BeforeAll {
 Describe 'Get-GitHubReleaseAsset' {
     Context 'When retrieving release asset metadata from a public repository' {
         BeforeAll {
-            $testParams = @{
+            $getGitHubReleaseParameters = @{
                 OwnerName = 'PowerShell'
                 RepositoryName = 'PowerShell'
                 AssetName = 'PowerShell-*.zip'
@@ -40,11 +40,11 @@ Describe 'Get-GitHubReleaseAsset' {
         }
 
         It 'Should not throw when retrieving the latest release asset' {
-            { Get-GitHubReleaseAsset @testParams } | Should -Not -Throw
+            { Get-GitHubReleaseAsset @getGitHubReleaseParameters } | Should -Not -Throw
         }
 
         It 'Should return the correct metadata format' {
-            $result = Get-GitHubReleaseAsset @testParams
+            $result = Get-GitHubReleaseAsset @getGitHubReleaseParameters
 
             $result | Should -Not -BeNullOrEmpty
             $result.Name | Should -Match 'PowerShell-.*\.zip$'
@@ -55,7 +55,7 @@ Describe 'Get-GitHubReleaseAsset' {
 
     Context 'When retrieving release asset with IncludePrerelease' {
         BeforeAll {
-            $testParams = @{
+            $getGitHubReleaseParameters = @{
                 OwnerName = 'PowerShell'
                 RepositoryName = 'PowerShell'
                 AssetName = 'PowerShell-*.zip'
@@ -64,13 +64,13 @@ Describe 'Get-GitHubReleaseAsset' {
         }
 
         It 'Should not throw when retrieving the latest release asset including prereleases' {
-            { Get-GitHubReleaseAsset @testParams } | Should -Not -Throw
+            { Get-GitHubReleaseAsset @getGitHubReleaseParameters } | Should -Not -Throw
         }
     }
 
     Context 'When repository does not exist' {
         BeforeAll {
-            $testParams = @{
+            $getGitHubReleaseParameters = @{
                 OwnerName = 'PowerShell'
                 RepositoryName = 'NonExistentRepository9876543210'
                 AssetName = 'test.zip'
@@ -78,13 +78,13 @@ Describe 'Get-GitHubReleaseAsset' {
         }
 
         It 'Should throw when accessing a nonexistent repository' {
-            { Get-GitHubReleaseAsset @testParams -ErrorAction 'Stop' } | Should -Throw
+            { Get-GitHubReleaseAsset @getGitHubReleaseParameters -ErrorAction 'Stop' } | Should -Throw
         }
     }
 
     Context 'When asset does not exist' {
         BeforeAll {
-            $testParams = @{
+            $getGitHubReleaseParameters = @{
                 OwnerName = 'PowerShell'
                 RepositoryName = 'PowerShell'
                 AssetName = 'NonExistentAsset9876543210.zip'
@@ -93,8 +93,127 @@ Describe 'Get-GitHubReleaseAsset' {
 
         It 'Should not throw but return null when the asset is not found' {
             {
-                $result = Get-GitHubReleaseAsset @testParams -ErrorAction 'Stop'
+                $result = Get-GitHubReleaseAsset @getGitHubReleaseParameters -ErrorAction 'Stop'
             } |  Should -Throw
+        }
+    }
+
+    Context 'When passing release through pipeline' {
+        BeforeAll {
+            $getGitHubReleaseParameters = @{
+                OwnerName = 'PowerShell'
+                RepositoryName = 'PowerShell'
+            }
+        }
+
+        It 'Should correctly process release objects received through the pipeline' {
+            $release = Get-GitHubRelease @getGitHubReleaseParameters |
+                Where-Object -FilterScript {
+                    $_.prerelease -eq $false -and $_.draft -eq $false
+                } |
+                Select-Object -First 1
+
+            $release | Should -Not -BeNullOrEmpty
+
+            $result = $release | Get-GitHubReleaseAsset -AssetName 'PowerShell-*.zip'
+
+            $result | Should -Not -BeNullOrEmpty
+            $result.Name | Should -Match 'PowerShell-.*\.zip$'
+            $result.Size | Should -BeGreaterThan 0
+            $result.browser_download_url | Should -Match 'https://github.com/PowerShell/PowerShell/releases/download/.*'
+        }
+
+        Context 'When asset does not exist' {
+            It 'Should not throw but return null when the asset is not found' {
+
+                $release = Get-GitHubRelease @getGitHubReleaseParameters |
+                    Where-Object -FilterScript {
+                        $_.prerelease -eq $false -and $_.draft -eq $false
+                    } |
+                    Select-Object -First 1
+
+                $release | Should -Not -BeNullOrEmpty
+
+                {
+                    $release | Get-GitHubReleaseAsset -AssetName 'NonExistentAsset9876543210.zip' -ErrorAction 'Stop'
+                } |  Should -Throw
+            }
+        }
+    }
+
+    Context 'When passing multiple releases through pipeline' {
+        BeforeAll {
+            $getGitHubReleaseParameters = @{
+                OwnerName = 'PowerShell'
+                RepositoryName = 'PowerShell'
+            }
+        }
+
+        It 'Should correctly process multiple release objects received through the pipeline' {
+            $releases = Get-GitHubRelease @getGitHubReleaseParameters |
+                Where-Object -FilterScript {
+                    $_.prerelease -eq $false -and $_.draft -eq $false
+                } |
+                Select-Object -First 3
+
+            $releases | Should -Not -BeNullOrEmpty
+            $releases.Count | Should -BeGreaterOrEqual 1
+
+            $result = $releases | Get-GitHubReleaseAsset -AssetName 'PowerShell-*win-arm64.zip'
+
+            $result | Should -Not -BeNullOrEmpty
+
+            $result | Should -HaveCount 3
+
+            $result[0].Name | Should -Match 'PowerShell-.*\win-arm64.zip$'
+            $result[1].Name | Should -Match 'PowerShell-.*\win-arm64.zip$'
+            $result[2].Name | Should -Match 'PowerShell-.*\win-arm64.zip$'
+        }
+    }
+
+    Context 'When passing a release with no assets through pipeline' {
+        BeforeAll {
+            $getGitHubReleaseParameters = @{
+                OwnerName = 'PowerShell'
+                RepositoryName = 'PowerShell'
+            }
+        }
+
+        It 'Should throw non-terminating error but return null' {
+            # Find a release with assets so we can create a mock release without assets
+            $release = Get-GitHubRelease @getGitHubReleaseParameters |
+                Where-Object -FilterScript {
+                    $_.prerelease -eq $false -and $_.draft -eq $false
+                } |
+                Select-Object -First 1
+
+            $release | Should -Not -BeNullOrEmpty
+
+            # Create a clone of the release object but without assets
+            $mockReleaseWithoutAssets = $release | Select-Object * -ExcludeProperty assets
+            $mockReleaseWithoutAssets | Add-Member -MemberType NoteProperty -Name 'assets' -Value @() -Force
+
+            # Verify the mock is setup correctly
+            $mockReleaseWithoutAssets.assets.Count | Should -Be 0
+
+            # Test the behavior with a release that has no assets
+            $result = $mockReleaseWithoutAssets | Get-GitHubReleaseAsset -AssetName 'PowerShell-*.zip' -ErrorAction 'SilentlyContinue'
+            $result | Should -BeNullOrEmpty
+        }
+
+        It 'Should throw terminating error with ErrorAction set to Stop' {
+            # Find a release with assets
+            $release = Get-GitHubRelease @getGitHubReleaseParameters |
+                Where-Object -FilterScript {
+                    $_.prerelease -eq $false -and $_.draft -eq $false
+                } |
+                Select-Object -First 1
+
+            $release | Should -Not -BeNullOrEmpty
+
+            {
+                $release | Get-GitHubReleaseAsset -AssetName 'CompletelyNonExistentPattern*.xyz' -ErrorAction 'Stop'
+            } | Should -Throw
         }
     }
 }
