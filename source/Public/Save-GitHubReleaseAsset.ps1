@@ -50,7 +50,7 @@
         Downloads a specific PowerShell MSI and saves it as 'custom-name.msi' in the C:\Downloads directory.
 
     .NOTES
-        This command shows download progress using Write-Progress and handles multiple assets in parallel.
+        This command shows download progress using Write-Progress and processes multiple assets sequentially.
 #>
 function Save-GitHubReleaseAsset
 {
