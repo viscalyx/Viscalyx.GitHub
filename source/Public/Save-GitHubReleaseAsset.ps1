@@ -30,12 +30,12 @@
         cannot be used together with InputObject.
 
     .EXAMPLE
-        Get-GitHubReleaseAsset -Owner 'PowerShell' -Repository 'PowerShell' -Tag 'v7.3.0' | Save-GitHubReleaseAsset -Path 'C:\Downloads'
+        $inputObject = Get-GitHubReleaseAsset -Owner 'PowerShell' -Repository 'PowerShell' -Tag 'v7.3.0' ; Save-GitHubReleaseAsset  -InputObject $inputObject -Path 'C:\Downloads'
 
         Downloads all assets from PowerShell v7.3.0 release to the C:\Downloads directory.
 
     .EXAMPLE
-        Get-GitHubReleaseAsset -Owner 'PowerShell' -Repository 'PowerShell' -Tag 'v7.3.0' | Save-GitHubReleaseAsset -Path 'C:\Downloads' -AssetName '*win-x64*'
+        $inputObject = Get-GitHubReleaseAsset -Owner 'PowerShell' -Repository 'PowerShell' -Tag 'v7.3.0' ; Save-GitHubReleaseAsset -InputObject $inputObject -Path 'C:\Downloads' -AssetName '*win-x64*'
 
         Downloads only the Windows x64 assets from PowerShell v7.3.0 release to the C:\Downloads directory.
 
