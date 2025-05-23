@@ -269,3 +269,19 @@ This project use the style guidelines from the DSC Community: https://dsccommuni
   line.
 - When comparing a value to `$null`, `$null` should be on the left side of
   the comparison.
+- When using .NET types, use the full type name, e.g. `[System.String]` or
+  `[System.Collections.Generic.List[System.String]]`.
+
+
+## Project scripts
+
+The build script is located in the root of the repository and is named
+`build.ps1`.
+
+### Build
+
+- To run the build script after code changes in ./source, run `.\build.ps1 -Tasks build`.
+
+## Test project
+
+- To run test always run `.\build.ps1 -Tasks noop` prior to running `Invoke-Pester'.

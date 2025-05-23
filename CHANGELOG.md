@@ -12,13 +12,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with options to filter by latest, prerelease, and draft statuses.
 - New command `Get-GitHubReleaseAsset` to retrieve metadata information
   about assets from GitHub repository releases.
+- New command `Save-GitHubReleaseAsset` to download GitHub release assets to
+  a local path with support for multiple download methods, asset name filtering,
+  and progress indication during downloads.
 - Private function `Convert-SecureStringAsPlainText` to safely handle secure
   string conversions for GitHub authentication tokens.
+- Private function `Invoke-UrlDownload` to handle file downloads with proper
+  error handling, user agent configuration, and verbose logging.
 - Added pipeline input support to `Get-GitHubReleaseAsset` allowing release
   objects from `Get-GitHubRelease` to be piped directly into the command.
 - Added additional example to `Get-GitHubReleaseAsset` documentation showing
   how to use the pipeline functionality for efficient workflow.
 - Added integration tests for the new pipeline functionality.
+- Added comprehensive unit tests for `Save-GitHubReleaseAsset` command covering
+  various download scenarios, error handling, and edge cases.
+- Added unit tests for `Invoke-UrlDownload` private function to ensure reliable
+  file download functionality.
+- Added integration tests for `Save-GitHubReleaseAsset` to verify real-world
+  download capabilities with public GitHub repositories.
+- Added localized string resources for `Save-GitHubReleaseAsset` and
+  `Invoke-UrlDownload` functions to support proper error messaging and user feedback.
+- Added project documentation improvements including build instructions and
+  test execution guidelines for development workflow.
 
 ### Changed
 
