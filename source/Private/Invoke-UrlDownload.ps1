@@ -51,11 +51,20 @@ function Invoke-UrlDownload
     {
         # Create WebRequest parameters
         $webRequestParams = @{
-            Uri             = $Uri
-            OutFile         = $OutputPath
-            UserAgent       = $UserAgent
-            UseBasicParsing = $true
-            ErrorAction     = $ErrorActionPreference
+            Uri         = $Uri
+            OutFile     = $OutputPath
+            UserAgent   = $UserAgent
+            ErrorAction = $ErrorActionPreference
+        }
+
+        <#
+            Add UseBasicParsing parameter only for Windows PowerShell 5.1.
+            In PowerShell Core/7+, basic parsing is the default and the parameter
+            is deprecated/removed
+        #>
+        if ($PSVersionTable.PSEdition -eq 'Desktop')
+        {
+            $webRequestParams.UseBasicParsing = $true
         }
 
         # Download the file using Invoke-WebRequest
