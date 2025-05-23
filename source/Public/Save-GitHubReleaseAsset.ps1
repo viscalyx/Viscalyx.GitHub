@@ -154,7 +154,7 @@ function Save-GitHubReleaseAsset
             $asset = $assetsToDownload[$i]
             $destination = Join-Path -Path $Path -ChildPath $asset.name
             $activityMessage = "Downloading $($asset.name) [$($i+1)/$($assetsToDownload.Count)]"
-            $percentComplete = [System.Math]::Round(($i / $assetsToDownload.Count) * 100)
+            $percentComplete = [System.Math]::Round((($i + 1) / $assetsToDownload.Count) * 100)
 
             # Show progress
             Write-Progress -Activity 'Downloading GitHub Release Assets' -Status $activityMessage -PercentComplete $percentComplete
