@@ -283,5 +283,4 @@ The build script is located in the root of the repository and is named
 - To run the build script after code changes in ./source, run `.\build.ps1 -Tasks build`.
 
 ## Test project
-
-- To run test always run `.\build.ps1 -Tasks noop` prior to running `Invoke-Pester'.
+- To run tests, always run `.\build.ps1 -Tasks noop` prior to running `Invoke-Pester`.
