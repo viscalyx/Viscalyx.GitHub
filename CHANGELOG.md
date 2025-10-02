@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   distinction between direct repository queries and pipeline input scenarios.
 - Enhanced `Get-GitHubReleaseAsset` with begin/process/end blocks for proper
   pipeline handling of multiple release objects.
+- Bump action Stale to v10.
 
 ### Fixed
 

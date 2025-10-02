@@ -61,7 +61,7 @@ stages:
       - job: Test_HQRM
         displayName: 'HQRM'
         pool:
-          vmImage: 'windows-2022'
+          vmImage: 'windows-latest'
         timeoutInMinutes: 0
         steps:
           - task: DownloadPipelineArtifact@2
@@ -325,6 +325,8 @@ stages:
               filePath: './build.ps1'
               arguments: "-Tasks test -CodeCoverageThreshold 0 -PesterPath 'tests/Integration'"
               pwsh: $(PWSH)
+            env:
+              GITHUB_TOKEN: $(GITHUB_TOKEN_INTEGRATION)
           - task: PublishTestResults@2
             displayName: 'Publish Test Results'
             condition: succeededOrFailed()

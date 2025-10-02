@@ -27,6 +27,13 @@ BeforeAll {
     $script:dscModuleName = 'Viscalyx.GitHub'
 
     Import-Module -Name $script:dscModuleName
+
+    # Setup GitHub token for authentication to avoid rate limiting
+    $script:gitHubToken = $null
+    if ($env:GITHUB_TOKEN)
+    {
+        $script:gitHubToken = ConvertTo-SecureString -String $env:GITHUB_TOKEN -AsPlainText -Force
+    }
 }
 
 Describe 'Get-GitHubRelease' {
@@ -36,7 +43,17 @@ Describe 'Get-GitHubRelease' {
             $testRepoOwner = 'PowerShell'
             $testRepoName = 'PowerShell'
 
-            $releases = Get-GitHubRelease -OwnerName $testRepoOwner -RepositoryName $testRepoName
+            $getReleaseParams = @{
+                OwnerName      = $testRepoOwner
+                RepositoryName = $testRepoName
+            }
+
+            if ($script:gitHubToken)
+            {
+                $getReleaseParams.Token = $script:gitHubToken
+            }
+
+            $releases = Get-GitHubRelease @getReleaseParams
         }
 
         It 'Should return releases' {
@@ -62,7 +79,18 @@ Describe 'Get-GitHubRelease' {
             $testRepoOwner = 'PowerShell'
             $testRepoName = 'PowerShell'
 
-            $release = Get-GitHubRelease -OwnerName $testRepoOwner -RepositoryName $testRepoName -Latest
+            $getReleaseParams = @{
+                OwnerName      = $testRepoOwner
+                RepositoryName = $testRepoName
+                Latest         = $true
+            }
+
+            if ($script:gitHubToken)
+            {
+                $getReleaseParams.Token = $script:gitHubToken
+            }
+
+            $release = Get-GitHubRelease @getReleaseParams
         }
 
         It 'Should return a single release' {
@@ -87,7 +115,18 @@ Describe 'Get-GitHubRelease' {
         }
 
         It 'Should include prerelease versions if they exist' {
-            $releases = Get-GitHubRelease -OwnerName $testRepoOwner -RepositoryName $testRepoName -IncludePrerelease
+            $getReleaseParams = @{
+                OwnerName         = $testRepoOwner
+                RepositoryName    = $testRepoName
+                IncludePrerelease = $true
+            }
+
+            if ($script:gitHubToken)
+            {
+                $getReleaseParams.Token = $script:gitHubToken
+            }
+
+            $releases = Get-GitHubRelease @getReleaseParams
 
             $prereleases = $releases |
                 Where-Object -FilterScript {
@@ -105,13 +144,35 @@ Describe 'Get-GitHubRelease' {
         }
 
         It 'Should write an error for a non-existent repository' {
+            $getReleaseParams = @{
+                OwnerName      = $nonExistentOwner
+                RepositoryName = $nonExistentRepo
+                ErrorAction    = 'Stop'
+            }
+
+            if ($script:gitHubToken)
             {
-                Get-GitHubRelease -OwnerName $nonExistentOwner -RepositoryName $nonExistentRepo -ErrorAction 'Stop'
+                $getReleaseParams.Token = $script:gitHubToken
+            }
+
+            {
+                Get-GitHubRelease @getReleaseParams
             } | Should -Throw
         }
 
         It 'Should return $null when ErrorAction is not Stop' {
-            $result = Get-GitHubRelease -OwnerName $nonExistentOwner -RepositoryName $nonExistentRepo -ErrorAction 'SilentlyContinue'
+            $getReleaseParams = @{
+                OwnerName      = $nonExistentOwner
+                RepositoryName = $nonExistentRepo
+                ErrorAction    = 'SilentlyContinue'
+            }
+
+            if ($script:gitHubToken)
+            {
+                $getReleaseParams.Token = $script:gitHubToken
+            }
+
+            $result = Get-GitHubRelease @getReleaseParams
 
             $result | Should -BeNullOrEmpty
         }
