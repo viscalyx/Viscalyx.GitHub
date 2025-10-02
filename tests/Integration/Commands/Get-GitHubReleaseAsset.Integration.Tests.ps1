@@ -27,6 +27,13 @@ BeforeAll {
     $script:dscModuleName = 'Viscalyx.GitHub'
 
     Import-Module -Name $script:dscModuleName
+
+    # Setup GitHub token for authentication to avoid rate limiting
+    $script:gitHubToken = $null
+    if ($env:GITHUB_TOKEN)
+    {
+        $script:gitHubToken = ConvertTo-SecureString -String $env:GITHUB_TOKEN -AsPlainText -Force
+    }
 }
 
 Describe 'Get-GitHubReleaseAsset' {
@@ -36,6 +43,11 @@ Describe 'Get-GitHubReleaseAsset' {
                 OwnerName = 'PowerShell'
                 RepositoryName = 'PowerShell'
                 AssetName = 'PowerShell-*.zip'
+            }
+
+            if ($script:gitHubToken)
+            {
+                $getGitHubReleaseParameters.Token = $script:gitHubToken
             }
         }
 
@@ -61,6 +73,11 @@ Describe 'Get-GitHubReleaseAsset' {
                 AssetName = 'PowerShell-*.zip'
                 IncludePrerelease = $true
             }
+
+            if ($script:gitHubToken)
+            {
+                $getGitHubReleaseParameters.Token = $script:gitHubToken
+            }
         }
 
         It 'Should not throw when retrieving the latest release asset including prereleases' {
@@ -74,6 +91,11 @@ Describe 'Get-GitHubReleaseAsset' {
                 OwnerName = 'PowerShell'
                 RepositoryName = 'NonExistentRepository9876543210'
                 AssetName = 'test.zip'
+            }
+
+            if ($script:gitHubToken)
+            {
+                $getGitHubReleaseParameters.Token = $script:gitHubToken
             }
         }
 
@@ -89,6 +111,11 @@ Describe 'Get-GitHubReleaseAsset' {
                 RepositoryName = 'PowerShell'
                 AssetName = 'NonExistentAsset9876543210.zip'
             }
+
+            if ($script:gitHubToken)
+            {
+                $getGitHubReleaseParameters.Token = $script:gitHubToken
+            }
         }
 
         It 'Should not throw but return null when the asset is not found' {
@@ -103,6 +130,11 @@ Describe 'Get-GitHubReleaseAsset' {
             $getGitHubReleaseParameters = @{
                 OwnerName = 'PowerShell'
                 RepositoryName = 'PowerShell'
+            }
+
+            if ($script:gitHubToken)
+            {
+                $getGitHubReleaseParameters.Token = $script:gitHubToken
             }
         }
 
@@ -147,6 +179,11 @@ Describe 'Get-GitHubReleaseAsset' {
                 OwnerName = 'PowerShell'
                 RepositoryName = 'PowerShell'
             }
+
+            if ($script:gitHubToken)
+            {
+                $getGitHubReleaseParameters.Token = $script:gitHubToken
+            }
         }
 
         It 'Should correctly process multiple release objects received through the pipeline' {
@@ -176,6 +213,11 @@ Describe 'Get-GitHubReleaseAsset' {
             $getGitHubReleaseParameters = @{
                 OwnerName = 'PowerShell'
                 RepositoryName = 'PowerShell'
+            }
+
+            if ($script:gitHubToken)
+            {
+                $getGitHubReleaseParameters.Token = $script:gitHubToken
             }
         }
 
