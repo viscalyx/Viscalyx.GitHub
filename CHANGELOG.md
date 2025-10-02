@@ -27,6 +27,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced `Get-GitHubReleaseAsset` with begin/process/end blocks for proper
   pipeline handling of multiple release objects.
 - Bump action Stale to v10.
+- Bump action Checkout to v5.
 
 ### Fixed
 
