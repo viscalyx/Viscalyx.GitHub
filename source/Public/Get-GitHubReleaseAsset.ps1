@@ -82,6 +82,7 @@
 #>
 function Get-GitHubReleaseAsset
 {
+    [System.Diagnostics.CodeAnalysis.SuppressMessageAttribute('UseSyntacticallyCorrectExamples', '', Justification = 'Because the examples are syntactically correct. The rule does not seem to understand that there is pipeline input.')]
     [CmdletBinding(DefaultParameterSetName = 'ByRepository')]
     [OutputType([PSCustomObject])]
     param
