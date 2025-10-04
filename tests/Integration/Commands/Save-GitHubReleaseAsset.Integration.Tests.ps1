@@ -42,7 +42,7 @@ Describe 'Save-GitHubReleaseAsset' {
 
         It 'Should download assets when filtering by name' {
             # Get release assets that match our pattern
-            $asset = Get-GitHubReleaseAsset -Owner $owner -Repository $repo -AssetName $assetNamePattern -ErrorAction Stop |
+            $asset = Viscalyx.GitHub\Get-GitHubReleaseAsset -Owner $owner -Repository $repo -AssetName $assetNamePattern -ErrorAction Stop |
                       Select-Object -First 1
 
             # Skip the test if no assets are found
@@ -51,7 +51,7 @@ Describe 'Save-GitHubReleaseAsset' {
                 return
             }
 
-            $null = $asset | Save-GitHubReleaseAsset -Path $TestDrive -Confirm:$false -Overwrite -ErrorAction Stop
+            $null = $asset | Viscalyx.GitHub\Save-GitHubReleaseAsset -Path $TestDrive -Confirm:$false -Overwrite -ErrorAction Stop
 
             # Assert - check if files were downloaded
             $downloadedFile = Join-Path -Path $TestDrive -ChildPath $asset.name
