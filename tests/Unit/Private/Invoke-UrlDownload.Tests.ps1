@@ -56,18 +56,34 @@ Describe 'Invoke-UrlDownload' {
 
             # Act
             $result = InModuleScope -ScriptBlock {
-                Invoke-UrlDownload -Uri 'https://example.com/file.zip' -OutputPath 'C:\Downloads\file.zip'
+                param($Uri, $Path)
+                Invoke-UrlDownload -Uri $Uri -OutputPath $Path
+            } -Parameters @{
+                Uri = $testUri
+                Path = $testOutputPath
             }
 
             # Assert
             $result | Should -BeTrue
 
-            Should -Invoke -CommandName Invoke-WebRequest -ParameterFilter {
-                $Uri -eq $testUri -and
-                $OutFile -eq $testOutputPath -and
-                $UserAgent -eq 'Viscalyx.GitHub' -and
-                $UseBasicParsing -eq $true
-            } -Exactly -Times 1 -Scope It
+            # UseBasicParsing only exists on Desktop edition (PS 5.1)
+            if ($PSVersionTable.PSEdition -eq 'Desktop')
+            {
+                Should -Invoke -CommandName Invoke-WebRequest -ParameterFilter {
+                    $Uri -eq $testUri -and
+                    $OutFile -eq $testOutputPath -and
+                    $UserAgent -eq 'Viscalyx.GitHub' -and
+                    $UseBasicParsing -eq $true
+                } -Exactly -Times 1 -Scope It
+            }
+            else
+            {
+                Should -Invoke -CommandName Invoke-WebRequest -ParameterFilter {
+                    $Uri -eq $testUri -and
+                    $OutFile -eq $testOutputPath -and
+                    $UserAgent -eq 'Viscalyx.GitHub'
+                } -Exactly -Times 1 -Scope It
+            }
         }
 
         It 'Should use the provided user agent' {
@@ -78,42 +94,241 @@ Describe 'Invoke-UrlDownload' {
 
             # Act
             $result = InModuleScope -ScriptBlock {
-                Invoke-UrlDownload -Uri 'https://example.com/file.zip' -OutputPath 'C:\Downloads\file.zip' -UserAgent 'CustomAgent'
+                param($Uri, $Path, $Agent)
+                Invoke-UrlDownload -Uri $Uri -OutputPath $Path -UserAgent $Agent
+            } -Parameters @{
+                Uri = $testUri
+                Path = $testOutputPath
+                Agent = $testUserAgent
             }
 
             # Assert
             $result | Should -BeTrue
 
-            Should -Invoke -CommandName Invoke-WebRequest -ParameterFilter {
-                $Uri -eq $testUri -and
-                $OutFile -eq $testOutputPath -and
-                $UserAgent -eq $testUserAgent -and
-                $UseBasicParsing -eq $true
-            } -Exactly -Times 1 -Scope It
+            # UseBasicParsing only exists on Desktop edition (PS 5.1)
+            if ($PSVersionTable.PSEdition -eq 'Desktop')
+            {
+                Should -Invoke -CommandName Invoke-WebRequest -ParameterFilter {
+                    $Uri -eq $testUri -and
+                    $OutFile -eq $testOutputPath -and
+                    $UserAgent -eq $testUserAgent -and
+                    $UseBasicParsing -eq $true
+                } -Exactly -Times 1 -Scope It
+            }
+            else
+            {
+                Should -Invoke -CommandName Invoke-WebRequest -ParameterFilter {
+                    $Uri -eq $testUri -and
+                    $OutFile -eq $testOutputPath -and
+                    $UserAgent -eq $testUserAgent
+                } -Exactly -Times 1 -Scope It
+            }
         }
     }
 
-    Context 'When a download fails' {
+    Context 'When the file already exists' {
         BeforeAll {
-            # Mock Invoke-WebRequest to throw an exception
-            Mock -CommandName Invoke-WebRequest -MockWith {
-                throw 'Download failed with status code 404'
-            }
-
-            $mockLocalizedDownloadFailed = InModuleScope -ScriptBlock { $script:localizedData.Invoke_UrlDownload_DownloadFailed }
+            Mock -CommandName Invoke-WebRequest -MockWith { }
+            Mock -CommandName Test-Path -MockWith { $true }
         }
 
-        It 'Should return false and write an error when the download fails' {
+        It 'Should skip download and return true when file exists and Force is not specified' {
             # Arrange
             $testUri = 'https://example.com/file.zip'
             $testOutputPath = 'C:\Downloads\file.zip'
 
             # Act
+            $result = InModuleScope -ScriptBlock {
+                param($Uri, $Path)
+                Invoke-UrlDownload -Uri $Uri -OutputPath $Path
+            } -Parameters @{
+                Uri = $testUri
+                Path = $testOutputPath
+            }
+
+            # Assert
+            $result | Should -BeTrue
+            Should -Invoke -CommandName Test-Path -ParameterFilter { $Path -eq $testOutputPath } -Exactly -Times 1 -Scope It
+            Should -Invoke -CommandName Invoke-WebRequest -Exactly -Times 0 -Scope It
+        }
+
+        It 'Should download file when file exists and Force is specified' {
+            # Arrange
+            $testUri = 'https://example.com/file.zip'
+            $testOutputPath = 'C:\Downloads\file.zip'
+
+            # Act
+            $result = InModuleScope -ScriptBlock {
+                param($Uri, $Path)
+                Invoke-UrlDownload -Uri $Uri -OutputPath $Path -Force
+            } -Parameters @{
+                Uri = $testUri
+                Path = $testOutputPath
+            }
+
+            # Assert
+            $result | Should -BeTrue
+            Should -Invoke -CommandName Test-Path -ParameterFilter { $Path -eq $testOutputPath } -Exactly -Times 1 -Scope It
+            Should -Invoke -CommandName Invoke-WebRequest -Exactly -Times 1 -Scope It
+        }
+    }
+
+    Context 'When a download fails with network errors' {
+        BeforeAll {
+            Mock -CommandName Test-Path -MockWith { $false }
+
+            $mockLocalizedNetworkError = InModuleScope -ScriptBlock { $script:localizedData.Invoke_UrlDownload_NetworkError }
+        }
+
+        It 'Should return false and write a network error when download fails with WebException' {
+            # Arrange
+            $testUri = 'https://example.com/file.zip'
+            $testOutputPath = 'C:\Downloads\file.zip'
+
+            # Mock Invoke-WebRequest to throw a WebException
+            Mock -CommandName Invoke-WebRequest -MockWith {
+                $webException = [System.Net.WebException]::new('Network error')
+                throw $webException
+            }
+
+            # Act
             {
                 InModuleScope -ScriptBlock {
-                    Invoke-UrlDownload -Uri 'https://example.com/file.zip' -OutputPath 'C:\Downloads\file.zip' -ErrorAction 'Stop'
+                    param($Uri, $Path)
+                    Invoke-UrlDownload -Uri $Uri -OutputPath $Path -ErrorAction 'Stop'
+                } -Parameters @{
+                    Uri = $testUri
+                    Path = $testOutputPath
                 }
-            } | Should -Throw -ExpectedMessage ($mockLocalizedDownloadFailed -f 'https://example.com/file.zip', 'Download failed with status code 404')
+            } | Should -Throw -ExpectedMessage ($mockLocalizedNetworkError -f $testUri, 'Network error')
+        }
+
+        It 'Should return false and write a not found error when download fails with 404' {
+            # Arrange
+            $testUri = 'https://example.com/file.zip'
+            $testOutputPath = 'C:\Downloads\file.zip'
+
+            $mockLocalizedNotFoundError = InModuleScope -ScriptBlock { $script:localizedData.Invoke_UrlDownload_NotFoundError }
+
+            # Mock Invoke-WebRequest to throw a 404 WebException
+            Mock -CommandName Invoke-WebRequest -MockWith {
+                $response = [PSCustomObject]@{
+                    StatusCode = [PSCustomObject]@{ value__ = 404 }
+                }
+
+                # Add the type name manually
+                $response.PSObject.TypeNames.Insert(0, 'System.Net.HttpWebResponse')
+
+                $webException = [System.Net.WebException]::new('The remote server returned an error: (404) Not Found.')
+                $webException | Add-Member -MemberType NoteProperty -Name 'Response' -Value $response -Force
+
+                throw $webException
+            }
+
+            # Act
+            {
+                InModuleScope -ScriptBlock {
+                    param($Uri, $Path)
+                    Invoke-UrlDownload -Uri $Uri -OutputPath $Path -ErrorAction 'Stop'
+                } -Parameters @{
+                    Uri = $testUri
+                    Path = $testOutputPath
+                }
+            } | Should -Throw -ExpectedMessage ($mockLocalizedNotFoundError -f $testUri, 'The remote server returned an error: (404) Not Found.')
+        }
+
+        It 'Should return false and write an unauthorized error when download fails with 401' {
+            # Arrange
+            $testUri = 'https://example.com/file.zip'
+            $testOutputPath = 'C:\Downloads\file.zip'
+
+            $mockLocalizedUnauthorizedError = InModuleScope -ScriptBlock { $script:localizedData.Invoke_UrlDownload_UnauthorizedError }
+
+            # Mock Invoke-WebRequest to throw a 401 WebException
+            Mock -CommandName Invoke-WebRequest -MockWith {
+                $response = [PSCustomObject]@{
+                    StatusCode = [PSCustomObject]@{ value__ = 401 }
+                }
+
+                # Add the type name manually
+                $response.PSObject.TypeNames.Insert(0, 'System.Net.HttpWebResponse')
+
+                $webException = [System.Net.WebException]::new('The remote server returned an error: (401) Unauthorized.')
+                $webException | Add-Member -MemberType NoteProperty -Name 'Response' -Value $response -Force
+
+                throw $webException
+            }
+
+            # Act
+            {
+                InModuleScope -ScriptBlock {
+                    param($Uri, $Path)
+                    Invoke-UrlDownload -Uri $Uri -OutputPath $Path -ErrorAction 'Stop'
+                } -Parameters @{
+                    Uri = $testUri
+                    Path = $testOutputPath
+                }
+            } | Should -Throw -ExpectedMessage ($mockLocalizedUnauthorizedError -f $testUri, 'The remote server returned an error: (401) Unauthorized.')
+        }
+    }
+
+    Context 'When a download fails with permission errors' {
+        BeforeAll {
+            Mock -CommandName Test-Path -MockWith { $false }
+
+            $mockLocalizedPermissionError = InModuleScope -ScriptBlock { $script:localizedData.Invoke_UrlDownload_PermissionError }
+        }
+
+        It 'Should return false and write a permission error when download fails with UnauthorizedAccessException' {
+            # Arrange
+            $testUri = 'https://example.com/file.zip'
+            $testOutputPath = 'C:\Downloads\file.zip'
+
+            # Mock Invoke-WebRequest to throw an UnauthorizedAccessException
+            Mock -CommandName Invoke-WebRequest -MockWith {
+                throw [System.UnauthorizedAccessException]::new('Access to the path is denied.')
+            }
+
+            # Act
+            {
+                InModuleScope -ScriptBlock {
+                    param($Uri, $Path)
+                    Invoke-UrlDownload -Uri $Uri -OutputPath $Path -ErrorAction 'Stop'
+                } -Parameters @{
+                    Uri = $testUri
+                    Path = $testOutputPath
+                }
+            } | Should -Throw -ExpectedMessage ($mockLocalizedPermissionError -f $testOutputPath, 'Access to the path is denied.')
+        }
+    }
+
+    Context 'When a download fails with unknown errors' {
+        BeforeAll {
+            Mock -CommandName Test-Path -MockWith { $false }
+
+            $mockLocalizedUnknownError = InModuleScope -ScriptBlock { $script:localizedData.Invoke_UrlDownload_UnknownError }
+        }
+
+        It 'Should return false and write an unknown error when download fails with generic exception' {
+            # Arrange
+            $testUri = 'https://example.com/file.zip'
+            $testOutputPath = 'C:\Downloads\file.zip'
+
+            # Mock Invoke-WebRequest to throw a generic exception
+            Mock -CommandName Invoke-WebRequest -MockWith {
+                throw 'An unexpected error occurred'
+            }
+
+            # Act
+            {
+                InModuleScope -ScriptBlock {
+                    param($Uri, $Path)
+                    Invoke-UrlDownload -Uri $Uri -OutputPath $Path -ErrorAction 'Stop'
+                } -Parameters @{
+                    Uri = $testUri
+                    Path = $testOutputPath
+                }
+            } | Should -Throw -ExpectedMessage ($mockLocalizedUnknownError -f $testUri, 'An unexpected error occurred')
         }
     }
 }

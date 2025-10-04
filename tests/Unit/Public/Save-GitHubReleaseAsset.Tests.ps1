@@ -217,8 +217,8 @@ Describe 'Save-GitHubReleaseAsset' {
         }
 
         It 'Should report errors for failed downloads' {
-            # Act
-            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads'
+            # Act - disable retries to make assertions predictable
+            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 0
 
             # Assert
             Should -Invoke -CommandName Invoke-UrlDownload -ParameterFilter {
@@ -232,6 +232,217 @@ Describe 'Save-GitHubReleaseAsset' {
             Should -Invoke -CommandName Write-Error -ParameterFilter {
                 $Message -eq ($mockLocalizedDownloadFailed -f 'asset2.zip')
             } -Exactly -Times 1
+        }
+    }
+
+    Context 'When testing retry logic' {
+        BeforeAll {
+            # Mock Test-Path to always return true
+            Mock -CommandName Test-Path -MockWith {
+                return $true
+            }
+
+            # Mock Join-Path to return a predictable path
+            Mock -CommandName Join-Path -MockWith {
+                return "TestDrive:\Downloads\$ChildPath"
+            }
+
+            # Mock Write-Error
+            Mock -CommandName Write-Error -MockWith { }
+
+            # Mock Start-Sleep to avoid actual delays in tests
+            Mock -CommandName Start-Sleep -MockWith { }
+        }
+
+        It 'Should retry failed download up to MaxRetries times' {
+            # Arrange
+            $mockAsset = @{
+                name = 'test-asset.zip'
+                browser_download_url = 'https://example.com/test-asset.zip'
+            }
+
+            # Mock Invoke-UrlDownload to fail every time
+            Mock -CommandName Invoke-UrlDownload -MockWith {
+                throw 'Download failed'
+            }
+
+            # Act
+            $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 3
+
+            # Assert - Should be called 4 times (1 initial + 3 retries)
+            Should -Invoke -CommandName Invoke-UrlDownload -Exactly -Times 4 -Scope It
+
+            # Should sleep 3 times (after each retry except the last)
+            Should -Invoke -CommandName Start-Sleep -Exactly -Times 3 -Scope It
+        }
+
+        It 'Should use exponential backoff for retry delays' {
+            # Arrange
+            $mockAsset = @{
+                name = 'test-asset.zip'
+                browser_download_url = 'https://example.com/test-asset.zip'
+            }
+
+            # Mock Invoke-UrlDownload to fail every time
+            Mock -CommandName Invoke-UrlDownload -MockWith {
+                throw 'Download failed'
+            }
+
+            # Act
+            $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 3
+
+            # Assert - Should sleep with exponential backoff (2^1, 2^2, 2^3)
+            Should -Invoke -CommandName Start-Sleep -ParameterFilter {
+                $Seconds -eq 2
+            } -Exactly -Times 1 -Scope It
+
+            Should -Invoke -CommandName Start-Sleep -ParameterFilter {
+                $Seconds -eq 4
+            } -Exactly -Times 1 -Scope It
+
+            Should -Invoke -CommandName Start-Sleep -ParameterFilter {
+                $Seconds -eq 8
+            } -Exactly -Times 1 -Scope It
+        }
+
+        It 'Should stop retrying once download succeeds' {
+            # Arrange
+            $mockAsset = @{
+                name = 'test-asset.zip'
+                browser_download_url = 'https://example.com/test-asset.zip'
+            }
+
+            $script:attemptCount = 0
+
+            # Mock Invoke-UrlDownload to succeed on the 2nd attempt
+            Mock -CommandName Invoke-UrlDownload -MockWith {
+                $script:attemptCount++
+                if ($script:attemptCount -eq 2)
+                {
+                    return $true
+                }
+                throw 'Download failed'
+            }
+
+            # Act
+            $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 3
+
+            # Assert - Should be called only 2 times (1 initial fail + 1 successful retry)
+            Should -Invoke -CommandName Invoke-UrlDownload -Exactly -Times 2 -Scope It
+
+            # Should sleep only once (after first failure)
+            Should -Invoke -CommandName Start-Sleep -Exactly -Times 1 -Scope It
+
+            # Should not write error since it eventually succeeded
+            Should -Not -Invoke -CommandName Write-Error -Scope It
+        }
+
+        It 'Should respect MaxRetries parameter when set to 0' {
+            # Arrange
+            $mockAsset = @{
+                name = 'test-asset.zip'
+                browser_download_url = 'https://example.com/test-asset.zip'
+            }
+
+            # Mock Invoke-UrlDownload to fail
+            Mock -CommandName Invoke-UrlDownload -MockWith {
+                throw 'Download failed'
+            }
+
+            # Act
+            $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 0
+
+            # Assert - Should be called only 1 time (no retries)
+            Should -Invoke -CommandName Invoke-UrlDownload -Exactly -Times 1 -Scope It
+
+            # Should not sleep at all
+            Should -Not -Invoke -CommandName Start-Sleep -Scope It
+        }
+
+        It 'Should write error message when all retries are exhausted' {
+            # Arrange
+            $mockAsset = @{
+                name = 'test-asset.zip'
+                browser_download_url = 'https://example.com/test-asset.zip'
+            }
+
+            # Mock Invoke-UrlDownload to fail every time
+            Mock -CommandName Invoke-UrlDownload -MockWith {
+                throw 'Download failed'
+            }
+
+            # Act
+            $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 2
+
+            # Assert
+            Should -Invoke -CommandName Write-Error -ParameterFilter {
+                $Message -eq ($mockLocalizedDownloadFailed -f 'test-asset.zip')
+            } -Exactly -Times 1 -Scope It
+        }
+
+        It 'Should handle multiple assets with mixed success and retry patterns' {
+            # Arrange
+            $mockAssets = @(
+                @{
+                    name = 'asset1.zip'
+                    browser_download_url = 'https://example.com/asset1.zip'
+                },
+                @{
+                    name = 'asset2.zip'
+                    browser_download_url = 'https://example.com/asset2.zip'
+                },
+                @{
+                    name = 'asset3.zip'
+                    browser_download_url = 'https://example.com/asset3.zip'
+                }
+            )
+
+            $script:asset1Attempts = 0
+            $script:asset2Attempts = 0
+
+            # Mock Invoke-UrlDownload with different behaviors per asset
+            Mock -CommandName Invoke-UrlDownload -MockWith {
+                param($Uri)
+
+                if ($Uri -eq 'https://example.com/asset1.zip')
+                {
+                    # Succeeds immediately
+                    return $true
+                }
+                elseif ($Uri -eq 'https://example.com/asset2.zip')
+                {
+                    # Fails once, then succeeds
+                    $script:asset2Attempts++
+                    if ($script:asset2Attempts -eq 2)
+                    {
+                        return $true
+                    }
+                    throw 'Download failed'
+                }
+                else
+                {
+                    # Always fails
+                    throw 'Download failed'
+                }
+            }
+
+            # Act
+            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 2
+
+            # Assert
+            # asset1: 1 call (success)
+            # asset2: 2 calls (1 fail + 1 success)
+            # asset3: 3 calls (1 initial + 2 retries, all fail)
+            # Total: 6 calls
+            Should -Invoke -CommandName Invoke-UrlDownload -Exactly -Times 6 -Scope It
+
+            # asset2: 1 sleep (after first failure)
+            # asset3: 2 sleeps (after each retry)
+            # Total: 3 sleeps
+            Should -Invoke -CommandName Start-Sleep -Exactly -Times 3 -Scope It
+
+            # Only asset3 should have an error
+            Should -Invoke -CommandName Write-Error -Exactly -Times 1 -Scope It
         }
     }
 
@@ -284,6 +495,55 @@ Describe 'Save-GitHubReleaseAsset' {
             Should -Not -Invoke -CommandName Invoke-UrlDownload
             Should -Invoke -CommandName Write-Warning -Exactly -Times 1 -Scope It
             Should -Not -Invoke -CommandName Write-Error
+        }
+    }
+
+    Context 'When using the Force parameter' {
+        BeforeAll {
+            # Create mock assets
+            $mockAssets = @(
+                @{
+                    name = 'asset1.zip'
+                    browser_download_url = 'https://example.com/asset1.zip'
+                }
+            )
+
+            # Mock Test-Path to always return true for the download path
+            Mock -CommandName Test-Path -ParameterFilter {
+                $Path -eq 'TestDrive:\Downloads'
+            } -MockWith {
+                return $true
+            }
+
+            # Mock Join-Path to return a predictable path
+            Mock -CommandName Join-Path -MockWith {
+                return "TestDrive:\Downloads\$ChildPath"
+            }
+
+            # Mock Invoke-UrlDownload to return success
+            Mock -CommandName Invoke-UrlDownload -MockWith {
+                return $true
+            }
+        }
+
+        It 'Should pass Force parameter to Invoke-UrlDownload when Force is specified' {
+            # Act
+            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -Force
+
+            # Assert
+            Should -Invoke -CommandName Invoke-UrlDownload -ParameterFilter {
+                $Force -eq $true
+            } -Exactly -Times 1
+        }
+
+        It 'Should not pass Force parameter to Invoke-UrlDownload when Force is not specified' {
+            # Act
+            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads'
+
+            # Assert
+            Should -Invoke -CommandName Invoke-UrlDownload -ParameterFilter {
+                $Force -eq $false
+            } -Exactly -Times 1
         }
     }
 }

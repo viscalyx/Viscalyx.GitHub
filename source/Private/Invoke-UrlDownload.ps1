@@ -18,10 +18,19 @@
         Specifies the User-Agent header to be used in the HTTP request.
         Defaults to 'Viscalyx.GitHub'.
 
+    .PARAMETER Force
+        Forces the download even if the file already exists at the specified output path.
+        Without this parameter, the function will skip the download if the file exists.
+
     .EXAMPLE
         Invoke-UrlDownload -Uri 'https://example.com/file.zip' -OutputPath 'C:\Downloads\file.zip'
 
         Downloads a file from example.com and saves it to the specified path.
+
+    .EXAMPLE
+        Invoke-UrlDownload -Uri 'https://example.com/file.zip' -OutputPath 'C:\Downloads\file.zip' -Force
+
+        Downloads a file from example.com and overwrites any existing file at the specified path.
 
     .NOTES
         This function is designed to be used internally by other commands within the module.
@@ -42,10 +51,30 @@ function Invoke-UrlDownload
 
         [Parameter()]
         [System.String]
-        $UserAgent = 'Viscalyx.GitHub'
+        $UserAgent = 'Viscalyx.GitHub',
+
+        [Parameter()]
+        [System.Management.Automation.SwitchParameter]
+        $Force
     )
 
-    Write-Verbose -Message ($script:localizedData.Invoke_UrlDownload_DownloadingFile -f $Uri, $OutputPath)
+    # Check if file already exists
+    if (Test-Path -Path $OutputPath)
+    {
+        if ($Force)
+        {
+            Write-Verbose -Message ($script:localizedData.Invoke_UrlDownload_DownloadingFile -f $Uri, $OutputPath)
+        }
+        else
+        {
+            Write-Verbose -Message ($script:localizedData.Invoke_UrlDownload_SkippingDownload -f $OutputPath)
+            return $true
+        }
+    }
+    else
+    {
+        Write-Verbose -Message ($script:localizedData.Invoke_UrlDownload_DownloadingFile -f $Uri, $OutputPath)
+    }
 
     try
     {
@@ -77,7 +106,60 @@ function Invoke-UrlDownload
     }
     catch
     {
-        Write-Error -Message ($script:localizedData.Invoke_UrlDownload_DownloadFailed -f $Uri, $_.Exception.Message)
+        # Determine the type of error and provide specific error message
+        $errorMessage = $_.Exception.Message
+
+        if ($_.Exception -is [System.Net.WebException])
+        {
+            $webException = $_.Exception -as [System.Net.WebException]
+
+            # Check if there's an HTTP response
+            if ($webException.Response)
+            {
+                $response = $webException.Response
+
+                # Check if we can access StatusCode
+                if ($response.StatusCode)
+                {
+                    $statusCode = $response.StatusCode.value__
+
+                    switch ($statusCode)
+                    {
+                        401
+                        {
+                            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_UnauthorizedError -f $Uri, $errorMessage)
+                        }
+
+                        404
+                        {
+                            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_NotFoundError -f $Uri, $errorMessage)
+                        }
+
+                        default
+                        {
+                            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_NetworkError -f $Uri, $errorMessage)
+                        }
+                    }
+                }
+                else
+                {
+                    Write-Error -Message ($script:localizedData.Invoke_UrlDownload_NetworkError -f $Uri, $errorMessage)
+                }
+            }
+            else
+            {
+                Write-Error -Message ($script:localizedData.Invoke_UrlDownload_NetworkError -f $Uri, $errorMessage)
+            }
+        }
+        elseif ($_.Exception -is [System.UnauthorizedAccessException] -or
+                ($_.Exception -is [System.IO.IOException] -and $errorMessage -match 'denied|access'))
+        {
+            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_PermissionError -f $OutputPath, $errorMessage)
+        }
+        else
+        {
+            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_UnknownError -f $Uri, $errorMessage)
+        }
 
         return $false
     }

@@ -14,7 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   about assets from GitHub repository releases.
 - New command `Save-GitHubReleaseAsset` to download GitHub release assets to
   a local path with support for multiple download methods, asset name filtering,
-  and progress indication during downloads.
+  file integrity validation using SHA256 hashes, and progress indication during
+  downloads.
 - Private function `Convert-SecureStringAsPlainText` to safely handle secure
   string conversions for GitHub authentication tokens.
 - Private function `Invoke-UrlDownload` to handle file downloads with proper
@@ -43,6 +44,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   pipeline handling of multiple release objects.
 - Bump action Stale to v10.
 - Bump action Checkout to v5.
+- Enhanced `Invoke-UrlDownload` private function with:
+  - Added `-Force` parameter to allow overwriting existing files.
+  - Added file existence check that skips download if file already exists
+    (unless `-Force` is specified).
+  - Enhanced error handling to differentiate between network errors (404, 401,
+    general network issues), permission errors, and unknown errors with
+    specific localized error messages for better troubleshooting.
+- Enhanced `Save-GitHubReleaseAsset` command with:
+  - Added `-Force` parameter that is passed through to `Invoke-UrlDownload` to
+    allow overwriting existing downloaded files.
 
 ### Fixed
 

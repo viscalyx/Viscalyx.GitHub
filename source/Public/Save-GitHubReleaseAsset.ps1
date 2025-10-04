@@ -34,6 +34,19 @@
         transient network issues. The default value is 3. Each retry uses exponential
         backoff (2^attempt seconds) before attempting the download again.
 
+    .PARAMETER FileHash
+        Specifies the expected SHA256 file hash for verification. Can be either:
+        - A hashtable containing expected SHA256 file hashes keyed by asset names (for multiple files)
+        - A string containing the expected SHA256 hash (for single file downloads)
+        After each successful download, the actual file hash is computed and compared to
+        the expected hash. If they differ, the downloaded file is deleted and an error
+        is written. This parameter enables file integrity validation during the download
+        process.
+
+    .PARAMETER Force
+        Forces the download even if the file already exists at the specified output path.
+        Without this parameter, the command will skip downloading files that already exist.
+
     .EXAMPLE
         $inputObject = Get-GitHubReleaseAsset -Owner 'PowerShell' -Repository 'PowerShell' -Tag 'v7.3.0' ; Save-GitHubReleaseAsset  -InputObject $inputObject -Path 'C:\Downloads'
 
@@ -53,6 +66,22 @@
         Save-GitHubReleaseAsset -Uri 'https://github.com/PowerShell/PowerShell/releases/download/v7.3.0/PowerShell-7.3.0-win-x64.msi' -Path 'C:\Downloads' -AssetName 'custom-name.msi'
 
         Downloads a specific PowerShell MSI and saves it as 'custom-name.msi' in the C:\Downloads directory.
+
+    .EXAMPLE
+        Save-GitHubReleaseAsset -Uri 'https://github.com/PowerShell/PowerShell/releases/download/v7.3.0/PowerShell-7.3.0-win-x64.msi' -Path 'C:\Downloads' -FileHash 'A1B2C3D4E5F6...'
+
+        Downloads a PowerShell MSI and verifies its SHA256 hash matches the expected value. If the hash doesn't match, the downloaded file is deleted and an error is written.
+
+    .EXAMPLE
+        $fileHashes = @{ 'PowerShell-7.3.0-win-x64.msi' = 'A1B2C3D4E5F6...'; 'PowerShell-7.3.0-win-x86.msi' = 'F6E5D4C3B2A1...' }
+        $inputObject = Get-GitHubReleaseAsset -Owner 'PowerShell' -Repository 'PowerShell' -Tag 'v7.3.0' ; Save-GitHubReleaseAsset -InputObject $inputObject -Path 'C:\Downloads' -AssetName '*win*.msi' -FileHash $fileHashes
+
+        Downloads multiple PowerShell MSI files and verifies each file's SHA256 hash against the corresponding value in the hashtable. Files with mismatched hashes are deleted and errors are written.
+
+    .EXAMPLE
+        $inputObject = Get-GitHubReleaseAsset -Owner 'PowerShell' -Repository 'PowerShell' -Tag 'v7.3.0' ; Save-GitHubReleaseAsset -InputObject $inputObject -Path 'C:\Downloads' -Force
+
+        Downloads all assets from PowerShell v7.3.0 release to the C:\Downloads directory, overwriting any existing files.
 
     .INPUTS
         System.Management.Automation.PSObject
@@ -92,7 +121,18 @@ function Save-GitHubReleaseAsset
         [Parameter()]
         [ValidateRange(0, 10)]
         [System.Int32]
-        $MaxRetries = 3
+        $MaxRetries = 3,
+
+        [Parameter()]
+        [ValidateScript({
+            $_ -is [System.Collections.Hashtable] -or $_ -is [System.String]
+        })]
+        [System.Object]
+        $FileHash,
+
+        [Parameter()]
+        [System.Management.Automation.SwitchParameter]
+        $Force
     )
 
     begin
@@ -189,7 +229,7 @@ function Save-GitHubReleaseAsset
 
                 try
                 {
-                    $downloadResult = Invoke-UrlDownload -Uri $asset.browser_download_url -OutputPath $destination -ErrorAction Stop
+                    $downloadResult = Invoke-UrlDownload -Uri $asset.browser_download_url -OutputPath $destination -Force:$Force -ErrorAction Stop
                     $downloadSuccessful = $downloadResult
                 }
                 catch
@@ -210,18 +250,73 @@ function Save-GitHubReleaseAsset
                         {
                             throw
                         }
-                        else
-                        {
-                            Write-Error -Message ($script:localizedData.Save_GitHubReleaseAsset_DownloadFailed -f $asset.name)
-                        }
                     }
                 }
             }
 
-            if (-not $downloadSuccessful -and $ErrorActionPreference -eq 'Continue')
+            if (-not $downloadSuccessful)
             {
-                # This is only reached if the download fails and the ErrorActionPreference is set to 'Continue'.
-                Write-Error -Message ($script:localizedData.Save_GitHubReleaseAsset_DownloadFailed -f $asset.name)
+                # Download failed after all retries
+                if ($ErrorActionPreference -eq 'Stop')
+                {
+                    throw ($script:localizedData.Save_GitHubReleaseAsset_DownloadFailed -f $asset.name)
+                }
+                else
+                {
+                    Write-Error -Message ($script:localizedData.Save_GitHubReleaseAsset_DownloadFailed -f $asset.name)
+                }
+            }
+
+            # Verify file hash if FileHash parameter is provided and download was successful
+            if ($downloadSuccessful -and $PSBoundParameters.ContainsKey('FileHash'))
+            {
+                # Determine the expected hash based on the type of FileHash parameter
+                $expectedHash = if ($FileHash -is [System.String])
+                {
+                    # String type: use the hash for the current asset
+                    $FileHash
+                }
+                elseif ($FileHash -is [System.Collections.Hashtable] -and $FileHash.ContainsKey($asset.name))
+                {
+                    # Hashtable type: look up the hash for this asset
+                    $FileHash[$asset.name]
+                }
+                else
+                {
+                    # No hash available for this asset, skip validation
+                    $null
+                }
+
+                if ($expectedHash)
+                {
+                    Write-Verbose -Message ($script:localizedData.Save_GitHubReleaseAsset_VerifyingHash -f $asset.name)
+
+                $actualHash = (Get-FileHash -Path $destination -Algorithm SHA256).Hash
+
+                if ($actualHash -ne $expectedHash)
+                {
+                    # Hash mismatch - delete the file and write error
+                    Remove-Item -Path $destination -Force
+
+                    $errorMessage = $script:localizedData.Save_GitHubReleaseAsset_HashMismatch -f $asset.name, $expectedHash, $actualHash
+
+                    if ($ErrorActionPreference -eq 'Stop')
+                    {
+                        throw $errorMessage
+                    }
+                    else
+                    {
+                        Write-Error -Message $errorMessage
+                    }
+
+                    # Skip further processing for this asset
+                    continue
+                }
+                    else
+                    {
+                        Write-Verbose -Message ($script:localizedData.Save_GitHubReleaseAsset_HashVerified -f $asset.name)
+                    }
+                }
             }
         }
 

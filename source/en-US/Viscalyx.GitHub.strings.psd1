@@ -31,9 +31,19 @@ ConvertFrom-StringData @'
     Save_GitHubReleaseAsset_DownloadsCompleted = All downloads completed. (SGRA0007)
     Save_GitHubReleaseAsset_UsingDirectUri = Using direct URI '{0}' for asset '{1}'. (SGRA0008)
     Save_GitHubReleaseAsset_RetryingDownload = Download failed for asset '{0}'. Retrying attempt {1}/{2} after waiting {3} seconds. (SGRA0009)
+    Save_GitHubReleaseAsset_VerifyingHash = Verifying file hash for asset '{0}'. (SGRA0010)
+    Save_GitHubReleaseAsset_HashMismatch = File hash mismatch for asset '{0}'. Expected: {1}, Actual: {2}. The downloaded file has been deleted. (SGRA0011)
+    Save_GitHubReleaseAsset_HashVerified = File hash verified successfully for asset '{0}'. (SGRA0012)
 
     ## Invoke-UrlDownload
     Invoke_UrlDownload_DownloadingFile = Downloading file from {0} to {1}.
     Invoke_UrlDownload_DownloadCompleted = Download completed successfully to {0}.
     Invoke_UrlDownload_DownloadFailed = Failed to download file from {0}: {1}
+    Invoke_UrlDownload_FileExists = File already exists at '{0}'. Use -Force to overwrite.
+    Invoke_UrlDownload_SkippingDownload = Skipping download as file already exists at '{0}'.
+    Invoke_UrlDownload_NetworkError = Network error occurred while downloading from {0}: {1}
+    Invoke_UrlDownload_PermissionError = Permission denied when writing to '{0}': {1}
+    Invoke_UrlDownload_UnauthorizedError = Unauthorized access to {0}. Check authentication credentials: {1}
+    Invoke_UrlDownload_NotFoundError = The requested resource was not found at {0}: {1}
+    Invoke_UrlDownload_UnknownError = An unexpected error occurred during download from {0}: {1}
 '@
