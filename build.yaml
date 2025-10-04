@@ -88,6 +88,12 @@ NestedModule:
     AddToManifest: false
     Exclude: PSGetModuleInfo.xml
 
+  Viscalyx.Common:
+    CopyOnly: true
+    Path: ./output/RequiredModules/Viscalyx.Common
+    AddToManifest: false
+    Exclude: PSGetModuleInfo.xml
+
 ####################################################
 #          Pester Configuration (Sampler)          #
 ####################################################
@@ -109,6 +115,7 @@ Pester:
       OutputEncoding: ascii
   ExcludeFromCodeCoverage:
     - Modules/DscResource.Common
+    - Modules/Viscalyx.Common
 
 ####################################################
 #      Pester Configuration (DscResource.Test)     #
@@ -133,6 +140,7 @@ DscTest:
       - output
     ExcludeModuleFile:
       - Modules/DscResource.Common
+      - Modules/Viscalyx.Common
     MainGitBranch: main
 
 ####################################################

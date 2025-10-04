@@ -1,9 +1,33 @@
 # Needed for publishing of examples, build worker defaults to core.autocrlf=input.
-* text eol=autocrlf
+* text=auto
 
-*.mof   text eol=crlf
-*.sh    text eol=lf
-*.svg   eol=lf
+# PowerShell files should use LF (cross-platform standard)
+*.ps1 text eol=lf
+*.psm1 text eol=lf
+*.psd1 text eol=lf
+
+# Common PS ancillary files
+*.ps1xml text eol=lf
+*.pssc text eol=lf
+*.psrc text eol=lf
+
+*.sh text eol=lf
+
+# YAML files should use LF (YAML standard)
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Markdown files should use LF (cross-platform standard)
+*.md text eol=lf
+
+# JSON files should use LF
+*.json text eol=lf
+
+# Source control files should use LF
+.gitignore text eol=lf
+.gitattributes text eol=lf
+
+*.svg text eol=lf
 
 # Ensure any exe files are treated as binary
 *.exe binary

@@ -40,4 +40,11 @@
             AllowPrerelease = $true
         }
     }
+
+    'Viscalyx.Common'                = @{
+        Version    = 'latest'
+        Parameters = @{
+            AllowPrerelease = $true
+        }
+    }
 }
