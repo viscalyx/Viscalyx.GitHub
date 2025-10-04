@@ -26,7 +26,7 @@ BeforeDiscovery {
 BeforeAll {
     $script:moduleName = 'Viscalyx.GitHub'
 
-    Import-Module -Name $script:moduleName
+    Import-Module -Name $script:moduleName -Force -ErrorAction 'Stop'
 
     $PSDefaultParameterValues['InModuleScope:ModuleName'] = $script:moduleName
     $PSDefaultParameterValues['Mock:ModuleName'] = $script:moduleName
