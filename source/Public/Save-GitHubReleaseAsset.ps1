@@ -43,9 +43,14 @@
         is written. This parameter enables file integrity validation during the download
         process.
 
-    .PARAMETER Force
+    .PARAMETER Overwrite
         Forces the download even if the file already exists at the specified output path.
         Without this parameter, the command will skip downloading files that already exist.
+
+    .PARAMETER Force
+        Suppresses all confirmation prompts and performs the operation without asking for
+        user confirmation. This is useful for automation scenarios where user interaction
+        is not possible or desired.
 
     .EXAMPLE
         $inputObject = Get-GitHubReleaseAsset -Owner 'PowerShell' -Repository 'PowerShell' -Tag 'v7.3.0' ; Save-GitHubReleaseAsset  -InputObject $inputObject -Path 'C:\Downloads'
@@ -79,7 +84,7 @@
         Downloads multiple PowerShell MSI files and verifies each file's SHA256 hash against the corresponding value in the hashtable. Files with mismatched hashes are deleted and errors are written.
 
     .EXAMPLE
-        $inputObject = Get-GitHubReleaseAsset -Owner 'PowerShell' -Repository 'PowerShell' -Tag 'v7.3.0' ; Save-GitHubReleaseAsset -InputObject $inputObject -Path 'C:\Downloads' -Force
+        $inputObject = Get-GitHubReleaseAsset -Owner 'PowerShell' -Repository 'PowerShell' -Tag 'v7.3.0' ; Save-GitHubReleaseAsset -InputObject $inputObject -Path 'C:\Downloads' -Overwrite
 
         Downloads all assets from PowerShell v7.3.0 release to the C:\Downloads directory, overwriting any existing files.
 
@@ -136,6 +141,10 @@ function Save-GitHubReleaseAsset
             })]
         [System.Object]
         $FileHash,
+
+        [Parameter()]
+        [System.Management.Automation.SwitchParameter]
+        $Overwrite,
 
         [Parameter()]
         [System.Management.Automation.SwitchParameter]
@@ -282,7 +291,7 @@ function Save-GitHubReleaseAsset
 
                 try
                 {
-                    $downloadResult = Invoke-UrlDownload -Uri $asset.browser_download_url -OutputPath $destination -Force:$Force -ErrorAction Stop
+                    $downloadResult = Invoke-UrlDownload -Uri $asset.browser_download_url -OutputPath $destination -Force:$Overwrite -ErrorAction Stop
                     $downloadSuccessful = $downloadResult
                 }
                 catch

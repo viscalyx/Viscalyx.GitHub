@@ -57,11 +57,11 @@ Describe 'Save-GitHubReleaseAsset' {
             $testCases = @(
                 @{
                     ExpectedParameterSetName = 'ByInputObject'
-                    ExpectedParameters = '-InputObject <psobject[]> -Path <string> [-AssetName <string>] [-MaxRetries <int>] [-FileHash <Object>] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]'
+                    ExpectedParameters = '-InputObject <psobject[]> -Path <string> [-AssetName <string>] [-MaxRetries <int>] [-FileHash <Object>] [-Overwrite] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]'
                 }
                 @{
                     ExpectedParameterSetName = 'ByUri'
-                    ExpectedParameters = '-Path <string> -Uri <uri> [-AssetName <string>] [-MaxRetries <int>] [-FileHash <Object>] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]'
+                    ExpectedParameters = '-Path <string> -Uri <uri> [-AssetName <string>] [-MaxRetries <int>] [-FileHash <Object>] [-Overwrite] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]'
                 }
             )
         }
@@ -126,7 +126,7 @@ Describe 'Save-GitHubReleaseAsset' {
 
         It 'Should create the download directory if it does not exist' {
             # Act
-            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads'
+            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -Confirm:$false
 
             # Assert
             Should -Invoke -CommandName New-Item -ParameterFilter {
@@ -136,7 +136,7 @@ Describe 'Save-GitHubReleaseAsset' {
 
         It 'Should download all assets when no filter is specified' {
             # Act
-            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads'
+            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -Confirm:$false
 
             Should -Invoke -CommandName Invoke-UrlDownload -Exactly -Times 2 -Scope It
         }
@@ -183,7 +183,7 @@ Describe 'Save-GitHubReleaseAsset' {
 
         It 'Should download only assets matching the AssetName filter' {
             # Act
-            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -AssetName '*zip'
+            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -AssetName '*zip' -Confirm:$false
 
             # Assert
             Should -Invoke -CommandName Invoke-UrlDownload -Exactly -Times 2
@@ -194,7 +194,7 @@ Describe 'Save-GitHubReleaseAsset' {
 
         It 'Should throw non-terminating error when no assets match the filter' {
             # Act
-            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -AssetName 'nonexistent*'
+            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -AssetName 'nonexistent*' -Confirm:$false
 
             # Assert
             Should -Invoke -CommandName Write-Error -ParameterFilter {
@@ -234,14 +234,14 @@ Describe 'Save-GitHubReleaseAsset' {
                 param ($Uri, $OutputPath)
                 return ($Uri -eq 'https://example.com/asset1.zip')
             }
-
-            # Mock Write-Error
-            Mock -CommandName Write-Error
         }
 
         It 'Should report errors for failed downloads' {
             # Act - disable retries to make assertions predictable
-            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 0
+            {
+                $mockAssets |
+                Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 0 -Confirm:$false -ErrorAction 'Stop'
+            } | Should -Throw -ExpectedMessage "*Failed to download asset 'asset2.zip'*"
 
             # Assert
             Should -Invoke -CommandName Invoke-UrlDownload -ParameterFilter {
@@ -250,10 +250,6 @@ Describe 'Save-GitHubReleaseAsset' {
 
             Should -Invoke -CommandName Invoke-UrlDownload -ParameterFilter {
                 $Uri -eq 'https://example.com/asset2.zip'
-            } -Exactly -Times 1
-
-            Should -Invoke -CommandName Write-Error -ParameterFilter {
-                $Message -eq ($mockLocalizedDownloadFailed -f 'asset2.zip')
             } -Exactly -Times 1
         }
     }
@@ -290,7 +286,7 @@ Describe 'Save-GitHubReleaseAsset' {
             }
 
             # Act
-            $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 3
+            $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 3 -Confirm:$false
 
             # Assert - Should be called 4 times (1 initial + 3 retries)
             Should -Invoke -CommandName Invoke-UrlDownload -Exactly -Times 4 -Scope It
@@ -312,7 +308,7 @@ Describe 'Save-GitHubReleaseAsset' {
             }
 
             # Act
-            $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 3
+            $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 3 -Confirm:$false
 
             # Assert - Should sleep with exponential backoff (2^1, 2^2, 2^3)
             Should -Invoke -CommandName Start-Sleep -ParameterFilter {
@@ -348,7 +344,7 @@ Describe 'Save-GitHubReleaseAsset' {
             }
 
             # Act
-            $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 3
+            $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 3 -Confirm:$false
 
             # Assert - Should be called only 2 times (1 initial fail + 1 successful retry)
             Should -Invoke -CommandName Invoke-UrlDownload -Exactly -Times 2 -Scope It
@@ -373,7 +369,7 @@ Describe 'Save-GitHubReleaseAsset' {
             }
 
             # Act
-            $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 0
+            $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 0 -Confirm:$false
 
             # Assert - Should be called only 1 time (no retries)
             Should -Invoke -CommandName Invoke-UrlDownload -Exactly -Times 1 -Scope It
@@ -395,7 +391,7 @@ Describe 'Save-GitHubReleaseAsset' {
             }
 
             # Act
-            $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 2
+            $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 2 -Confirm:$false
 
             # Assert - Should write error with ErrorRecord containing full metadata
             Should -Invoke -CommandName Write-Error -ParameterFilter {
@@ -453,7 +449,7 @@ Describe 'Save-GitHubReleaseAsset' {
             }
 
             # Act
-            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 2
+            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 2 -Confirm:$false
 
             # Assert
             # asset1: 1 call (success)
@@ -500,7 +496,7 @@ Describe 'Save-GitHubReleaseAsset' {
             $emptyAssets = @()
 
             # Act
-            Save-GitHubReleaseAsset -InputObject $emptyAssets -Path 'TestDrive:\Downloads'
+            Save-GitHubReleaseAsset -InputObject $emptyAssets -Path 'TestDrive:\Downloads' -Confirm:$false
 
             # Assert
             Should -Invoke -CommandName Write-Error -ParameterFilter {
@@ -512,7 +508,7 @@ Describe 'Save-GitHubReleaseAsset' {
 
         It 'Should handle null asset input without throwing errors or invoking downloads' {
             # Act & Assert - Should not throw
-            { Save-GitHubReleaseAsset -InputObject $null -Path 'TestDrive:\Downloads' } | Should -Not -Throw
+            { Save-GitHubReleaseAsset -InputObject $null -Path 'TestDrive:\Downloads' -Confirm:$false } | Should -Not -Throw
 
             # Assert
             Should -Not -Invoke -CommandName Invoke-UrlDownload
@@ -520,7 +516,7 @@ Describe 'Save-GitHubReleaseAsset' {
         }
     }
 
-    Context 'When using the Force parameter' {
+    Context 'When using the Overwrite parameter' {
         BeforeAll {
             # Create mock assets
             $mockAssets = @(
@@ -548,9 +544,9 @@ Describe 'Save-GitHubReleaseAsset' {
             }
         }
 
-        It 'Should pass Force parameter to Invoke-UrlDownload when Force is specified' {
+        It 'Should pass Force parameter to Invoke-UrlDownload when Overwrite is specified' {
             # Act
-            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -Force
+            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -Overwrite -Confirm:$false
 
             # Assert
             Should -Invoke -CommandName Invoke-UrlDownload -ParameterFilter {
@@ -558,9 +554,9 @@ Describe 'Save-GitHubReleaseAsset' {
             } -Exactly -Times 1
         }
 
-        It 'Should not pass Force parameter to Invoke-UrlDownload when Force is not specified' {
+        It 'Should not pass Force parameter to Invoke-UrlDownload when Overwrite is not specified' {
             # Act
-            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads'
+            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -Confirm:$false
 
             # Assert
             Should -Invoke -CommandName Invoke-UrlDownload -ParameterFilter {

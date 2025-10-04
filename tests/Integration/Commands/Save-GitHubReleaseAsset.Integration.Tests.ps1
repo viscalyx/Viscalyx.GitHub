@@ -52,7 +52,7 @@ Describe 'Save-GitHubReleaseAsset' {
             }
 
             # Act
-            $asset | Save-GitHubReleaseAsset -Path $TestDrive
+            $asset | Save-GitHubReleaseAsset -Path $TestDrive -Confirm:$false -Overwrite
 
             # Assert - check if files were downloaded
             $downloadedFile = Join-Path -Path $TestDrive -ChildPath $asset.name
