@@ -126,7 +126,7 @@ Describe 'Save-GitHubReleaseAsset' {
 
         It 'Should create the download directory if it does not exist' {
             # Act
-            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -Confirm:$false
+            $null = $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -Confirm:$false
 
             # Assert
             Should -Invoke -CommandName New-Item -ParameterFilter {
@@ -136,7 +136,7 @@ Describe 'Save-GitHubReleaseAsset' {
 
         It 'Should download all assets when no filter is specified' {
             # Act
-            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -Confirm:$false
+            $null = $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -Confirm:$false
 
             Should -Invoke -CommandName Invoke-UrlDownload -Exactly -Times 2 -Scope It
         }
@@ -183,7 +183,7 @@ Describe 'Save-GitHubReleaseAsset' {
 
         It 'Should download only assets matching the AssetName filter' {
             # Act
-            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -AssetName '*zip' -Confirm:$false
+            $null = $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -AssetName '*zip' -Confirm:$false
 
             # Assert
             Should -Invoke -CommandName Invoke-UrlDownload -Exactly -Times 2
@@ -194,7 +194,7 @@ Describe 'Save-GitHubReleaseAsset' {
 
         It 'Should throw non-terminating error when no assets match the filter' {
             # Act
-            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -AssetName 'nonexistent*' -Confirm:$false
+            $null = $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -AssetName 'nonexistent*' -Confirm:$false
 
             # Assert
             Should -Invoke -CommandName Write-Error -ParameterFilter {
@@ -286,7 +286,7 @@ Describe 'Save-GitHubReleaseAsset' {
             }
 
             # Act
-            $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 3 -Confirm:$false
+            $null = $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 3 -Confirm:$false
 
             # Assert - Should be called 4 times (1 initial + 3 retries)
             Should -Invoke -CommandName Invoke-UrlDownload -Exactly -Times 4 -Scope It
@@ -308,7 +308,7 @@ Describe 'Save-GitHubReleaseAsset' {
             }
 
             # Act
-            $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 3 -Confirm:$false
+            $null = $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 3 -Confirm:$false
 
             # Assert - Should sleep with exponential backoff (2^1, 2^2, 2^3)
             Should -Invoke -CommandName Start-Sleep -ParameterFilter {
@@ -344,7 +344,7 @@ Describe 'Save-GitHubReleaseAsset' {
             }
 
             # Act
-            $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 3 -Confirm:$false
+            $null = $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 3 -Confirm:$false
 
             # Assert - Should be called only 2 times (1 initial fail + 1 successful retry)
             Should -Invoke -CommandName Invoke-UrlDownload -Exactly -Times 2 -Scope It
@@ -369,7 +369,7 @@ Describe 'Save-GitHubReleaseAsset' {
             }
 
             # Act
-            $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 0 -Confirm:$false
+            $null = $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 0 -Confirm:$false
 
             # Assert - Should be called only 1 time (no retries)
             Should -Invoke -CommandName Invoke-UrlDownload -Exactly -Times 1 -Scope It
@@ -391,7 +391,7 @@ Describe 'Save-GitHubReleaseAsset' {
             }
 
             # Act
-            $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 2 -Confirm:$false
+            $null = $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 2 -Confirm:$false
 
             # Assert - Should write error with ErrorRecord containing full metadata
             Should -Invoke -CommandName Write-Error -ParameterFilter {
@@ -449,7 +449,7 @@ Describe 'Save-GitHubReleaseAsset' {
             }
 
             # Act
-            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 2 -Confirm:$false
+            $null = $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 2 -Confirm:$false
 
             # Assert
             # asset1: 1 call (success)
@@ -496,7 +496,7 @@ Describe 'Save-GitHubReleaseAsset' {
             $emptyAssets = @()
 
             # Act
-            Save-GitHubReleaseAsset -InputObject $emptyAssets -Path 'TestDrive:\Downloads' -Confirm:$false
+            $null = Save-GitHubReleaseAsset -InputObject $emptyAssets -Path 'TestDrive:\Downloads' -Confirm:$false
 
             # Assert
             Should -Invoke -CommandName Write-Error -ParameterFilter {
@@ -546,7 +546,7 @@ Describe 'Save-GitHubReleaseAsset' {
 
         It 'Should pass Force parameter to Invoke-UrlDownload when Overwrite is specified' {
             # Act
-            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -Overwrite -Confirm:$false
+            $null = $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -Overwrite -Confirm:$false
 
             # Assert
             Should -Invoke -CommandName Invoke-UrlDownload -ParameterFilter {
@@ -556,7 +556,7 @@ Describe 'Save-GitHubReleaseAsset' {
 
         It 'Should not pass Force parameter to Invoke-UrlDownload when Overwrite is not specified' {
             # Act
-            $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -Confirm:$false
+            $null = $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -Confirm:$false
 
             # Assert
             Should -Invoke -CommandName Invoke-UrlDownload -ParameterFilter {
@@ -611,7 +611,7 @@ Describe 'Save-GitHubReleaseAsset' {
 
         It 'Should create directory and download files when Confirm is suppressed' {
             # Act
-            $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -Confirm:$false
+            $null = $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -Confirm:$false
 
             # Assert - directory creation should be called
             Should -Invoke -CommandName New-Item -Exactly -Times 1
