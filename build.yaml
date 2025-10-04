@@ -115,6 +115,7 @@ Pester:
       OutputEncoding: ascii
   ExcludeFromCodeCoverage:
     - Modules/DscResource.Common
+    - Modules/Viscalyx.Common
 
 ####################################################
 #      Pester Configuration (DscResource.Test)     #
@@ -139,6 +140,7 @@ DscTest:
       - output
     ExcludeModuleFile:
       - Modules/DscResource.Common
+      - Modules/Viscalyx.Common
     MainGitBranch: main
 
 ####################################################
