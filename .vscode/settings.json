@@ -41,7 +41,9 @@
     ],
     "cSpell.ignoreRegExpList": [
         "/HKCU:/g",
-        "/analyzersettings\\.psd1/g"
+        "/analyzersettings\\.psd1/g",
+        "/\\b[A-Z]+\\d{4}\\b/g",
+        "/\\[\\d*(;\\d+)*m[^\\[]*(?=\\[|$)/g"
     ],
     "[markdown]": {
         "files.trimTrailingWhitespace": true,
@@ -56,5 +58,32 @@
     "pester.runTestsInNewProcess": false,
     "pester.pesterModulePath": "./output/RequiredModules/Pester",
     "powershell.pester.codeLens": true,
-    "pester.suppressCodeLensNotice": true
+    "pester.suppressCodeLensNotice": true,
+    "github.copilot.chat.codeGeneration.useInstructionFiles": true,
+    "terminal.integrated.defaultProfile.osx": "pwsh",
+    "terminal.integrated.profiles.osx": {
+        "pwsh": {
+            "path": "pwsh",
+            "args": []
+        },
+        "zsh": {
+            "path": "zsh",
+            "args": []
+        },
+        "bash": {
+            "path": "bash",
+            "args": []
+        }
+    },
+    "terminal.integrated.defaultProfile.linux": "pwsh",
+    "terminal.integrated.profiles.linux": {
+        "pwsh": {
+            "path": "pwsh",
+            "args": []
+        },
+        "bash": {
+            "path": "bash",
+            "args": []
+        }
+    }
 }
