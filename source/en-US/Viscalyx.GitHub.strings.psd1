@@ -30,6 +30,7 @@ ConvertFrom-StringData @'
     Save_GitHubReleaseAsset_DownloadFailed = Failed to download asset '{0}'. (SGRA0006)
     Save_GitHubReleaseAsset_DownloadsCompleted = All downloads completed. (SGRA0007)
     Save_GitHubReleaseAsset_UsingDirectUri = Using direct URI '{0}' for asset '{1}'. (SGRA0008)
+    Save_GitHubReleaseAsset_RetryingDownload = Download failed for asset '{0}'. Retrying attempt {1}/{2} after waiting {3} seconds. (SGRA0009)
 
     ## Invoke-UrlDownload
     Invoke_UrlDownload_DownloadingFile = Downloading file from {0} to {1}.

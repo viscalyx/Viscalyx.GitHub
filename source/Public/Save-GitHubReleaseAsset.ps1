@@ -29,6 +29,11 @@
         Specifies the direct URI to a GitHub release asset to download. This parameter
         cannot be used together with InputObject.
 
+    .PARAMETER MaxRetries
+        Specifies the maximum number of retry attempts for failed downloads due to
+        transient network issues. The default value is 3. Each retry uses exponential
+        backoff (2^attempt seconds) before attempting the download again.
+
     .EXAMPLE
         $inputObject = Get-GitHubReleaseAsset -Owner 'PowerShell' -Repository 'PowerShell' -Tag 'v7.3.0' ; Save-GitHubReleaseAsset  -InputObject $inputObject -Path 'C:\Downloads'
 
@@ -82,7 +87,12 @@ function Save-GitHubReleaseAsset
 
         [Parameter(Mandatory = $true, ParameterSetName = 'ByUri')]
         [System.Uri]
-        $Uri
+        $Uri,
+
+        [Parameter()]
+        [ValidateRange(0, 10)]
+        [System.Int32]
+        $MaxRetries = 3
     )
 
     begin
@@ -169,12 +179,48 @@ function Save-GitHubReleaseAsset
 
             Write-Verbose -Message ($script:localizedData.Save_GitHubReleaseAsset_DownloadingAsset -f $asset.name, $destination)
 
-            # Use the private function to download the file
-            $downloadResult = Invoke-UrlDownload -Uri $asset.browser_download_url -OutputPath $destination -ErrorAction $ErrorActionPreference
+            # Use the private function to download the file with retry logic
+            $attempt = 0
+            $downloadSuccessful = $false
 
-            if (-not $downloadResult)
+            while ($attempt -le $MaxRetries -and -not $downloadSuccessful)
             {
-                # This is only reached if the download fails and the ErrorActionPreference is set to 'Continue' (Invoke-UrlDownload returns $false).
+                $attempt++
+
+                try
+                {
+                    $downloadResult = Invoke-UrlDownload -Uri $asset.browser_download_url -OutputPath $destination -ErrorAction Stop
+                    $downloadSuccessful = $downloadResult
+                }
+                catch
+                {
+                    if ($attempt -le $MaxRetries)
+                    {
+                        # Calculate exponential backoff: 2^attempt seconds
+                        $waitTime = [System.Math]::Pow(2, $attempt)
+
+                        Write-Verbose -Message ($script:localizedData.Save_GitHubReleaseAsset_RetryingDownload -f $asset.name, $attempt, $MaxRetries, $waitTime)
+
+                        Start-Sleep -Seconds $waitTime
+                    }
+                    else
+                    {
+                        # Max retries exceeded
+                        if ($ErrorActionPreference -eq 'Stop')
+                        {
+                            throw
+                        }
+                        else
+                        {
+                            Write-Error -Message ($script:localizedData.Save_GitHubReleaseAsset_DownloadFailed -f $asset.name)
+                        }
+                    }
+                }
+            }
+
+            if (-not $downloadSuccessful -and $ErrorActionPreference -eq 'Continue')
+            {
+                # This is only reached if the download fails and the ErrorActionPreference is set to 'Continue'.
                 Write-Error -Message ($script:localizedData.Save_GitHubReleaseAsset_DownloadFailed -f $asset.name)
             }
         }
