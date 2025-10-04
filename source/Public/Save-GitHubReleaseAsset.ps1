@@ -159,10 +159,10 @@ function Save-GitHubReleaseAsset
         if (-not (Test-Path -Path $Path))
         {
             $shouldProcessDescriptionMessage = $script:localizedData.Save_GitHubReleaseAsset_ShouldProcessDescription -f $Path
-            $shouldProcessQuestionMessage = $script:localizedData.Save_GitHubReleaseAsset_ShouldProcessQuestion
+            $shouldProcessConfirmationMessage = $script:localizedData.Save_GitHubReleaseAsset_ShouldProcessConfirmation
             $shouldProcessCaptionMessage = $script:localizedData.Save_GitHubReleaseAsset_ShouldProcessCaption
 
-            if ($PSCmdlet.ShouldProcess($shouldProcessDescriptionMessage, $shouldProcessQuestionMessage, $shouldProcessCaptionMessage))
+            if ($PSCmdlet.ShouldProcess($shouldProcessDescriptionMessage, $shouldProcessConfirmationMessage, $shouldProcessCaptionMessage))
             {
                 Write-Verbose -Message ($script:localizedData.Save_GitHubReleaseAsset_CreatingDirectory -f $Path)
                 $null = New-Item -Path $Path -ItemType Directory -Force
@@ -262,10 +262,10 @@ function Save-GitHubReleaseAsset
 
             # Check if user approves downloading this asset
             $shouldProcessDescriptionMessage = $script:localizedData.Save_GitHubReleaseAsset_ShouldProcessDownloadDescription -f $asset.name, $destination
-            $shouldProcessQuestionMessage = $script:localizedData.Save_GitHubReleaseAsset_ShouldProcessDownloadQuestion
+            $shouldProcessConfirmationMessage = $script:localizedData.Save_GitHubReleaseAsset_ShouldProcessDownloadQuestion
             $shouldProcessCaptionMessage = $script:localizedData.Save_GitHubReleaseAsset_ShouldProcessDownloadCaption
 
-            if (-not $PSCmdlet.ShouldProcess($shouldProcessDescriptionMessage, $shouldProcessQuestionMessage, $shouldProcessCaptionMessage))
+            if (-not $PSCmdlet.ShouldProcess($shouldProcessDescriptionMessage, $shouldProcessConfirmationMessage, $shouldProcessCaptionMessage))
             {
                 Write-Verbose -Message ($script:localizedData.Save_GitHubReleaseAsset_SkippedByUser -f $asset.name)
                 continue
