@@ -95,7 +95,7 @@
 #>
 function Save-GitHubReleaseAsset
 {
-    [CmdletBinding(DefaultParameterSetName = 'ByInputObject')]
+    [CmdletBinding(DefaultParameterSetName = 'ByInputObject', SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
     [OutputType()]
     param
     (
@@ -144,15 +144,36 @@ function Save-GitHubReleaseAsset
 
     begin
     {
-        # Ensure the output directory exists
-        if (-not (Test-Path -Path $Path))
+        if ($Force.IsPresent -and -not $Confirm)
         {
-            Write-Verbose -Message ($script:localizedData.Save_GitHubReleaseAsset_CreatingDirectory -f $Path)
-            $null = New-Item -Path $Path -ItemType Directory -Force
+            $ConfirmPreference = 'None'
         }
 
         # Create a collection to store assets for processing
         $assetsToDownload = New-Object -TypeName 'System.Collections.Generic.List[PSObject]'
+
+        # Flag to track if we should skip processing
+        $skipProcessing = $false
+
+        # Ensure the output directory exists
+        if (-not (Test-Path -Path $Path))
+        {
+            $shouldProcessDescriptionMessage = $script:localizedData.Save_GitHubReleaseAsset_ShouldProcessDescription -f $Path
+            $shouldProcessQuestionMessage = $script:localizedData.Save_GitHubReleaseAsset_ShouldProcessQuestion
+            $shouldProcessCaptionMessage = $script:localizedData.Save_GitHubReleaseAsset_ShouldProcessCaption
+
+            if ($PSCmdlet.ShouldProcess($shouldProcessDescriptionMessage, $shouldProcessQuestionMessage, $shouldProcessCaptionMessage))
+            {
+                Write-Verbose -Message ($script:localizedData.Save_GitHubReleaseAsset_CreatingDirectory -f $Path)
+                $null = New-Item -Path $Path -ItemType Directory -Force
+            }
+            else
+            {
+                # User declined to create the directory, set flag to skip processing
+                $skipProcessing = $true
+                return
+            }
+        }
 
         # If Uri parameter is used, create a custom object to represent the asset
         if ($PSCmdlet.ParameterSetName -eq 'ByUri')
@@ -182,6 +203,12 @@ function Save-GitHubReleaseAsset
 
     process
     {
+        # Skip processing if user declined directory creation
+        if ($skipProcessing)
+        {
+            return
+        }
+
         # Only process pipeline input for ByInputObject parameter set
         if ($PSCmdlet.ParameterSetName -eq 'ByInputObject')
         {
@@ -205,6 +232,12 @@ function Save-GitHubReleaseAsset
 
     end
     {
+        # Skip processing if user declined directory creation
+        if ($skipProcessing)
+        {
+            return
+        }
+
         if ($assetsToDownload.Count -eq 0)
         {
             Write-Error -Message $script:localizedData.Save_GitHubReleaseAsset_NoAssetsToDownload -Category ObjectNotFound -ErrorId 'SGRA0003' -TargetObject $AssetName
@@ -226,6 +259,17 @@ function Save-GitHubReleaseAsset
             Write-Progress -Activity 'Downloading GitHub Release Assets' -Status $activityMessage -PercentComplete $percentComplete
 
             Write-Verbose -Message ($script:localizedData.Save_GitHubReleaseAsset_DownloadingAsset -f $asset.name, $destination)
+
+            # Check if user approves downloading this asset
+            $shouldProcessDescriptionMessage = $script:localizedData.Save_GitHubReleaseAsset_ShouldProcessDownloadDescription -f $asset.name, $destination
+            $shouldProcessQuestionMessage = $script:localizedData.Save_GitHubReleaseAsset_ShouldProcessDownloadQuestion
+            $shouldProcessCaptionMessage = $script:localizedData.Save_GitHubReleaseAsset_ShouldProcessDownloadCaption
+
+            if (-not $PSCmdlet.ShouldProcess($shouldProcessDescriptionMessage, $shouldProcessQuestionMessage, $shouldProcessCaptionMessage))
+            {
+                Write-Verbose -Message ($script:localizedData.Save_GitHubReleaseAsset_SkippedByUser -f $asset.name)
+                continue
+            }
 
             # Use the private function to download the file with retry logic
             $attempt = 0

@@ -35,6 +35,13 @@ ConvertFrom-StringData @'
     Save_GitHubReleaseAsset_HashMismatch = File hash mismatch for asset '{0}'. Expected: {1}, Actual: {2}. The downloaded file has been deleted. (SGRA0011)
     Save_GitHubReleaseAsset_HashVerified = File hash verified successfully for asset '{0}'. (SGRA0012)
     Save_GitHubReleaseAsset_PathIsFile = The specified path '{0}' is a file. Please provide a directory path. (SGRA0013)
+    Save_GitHubReleaseAsset_ShouldProcessDescription = Create directory '{0}' and download GitHub release assets to this location
+    Save_GitHubReleaseAsset_ShouldProcessQuestion = Are you sure you want to create the directory and download assets?
+    Save_GitHubReleaseAsset_ShouldProcessCaption = Create directory for downloads
+    Save_GitHubReleaseAsset_ShouldProcessDownloadDescription = Download asset '{0}' to '{1}'
+    Save_GitHubReleaseAsset_ShouldProcessDownloadQuestion = Are you sure you want to download this asset?
+    Save_GitHubReleaseAsset_ShouldProcessDownloadCaption = Download GitHub release asset
+    Save_GitHubReleaseAsset_SkippedByUser = Asset '{0}' download was skipped by user. (SGRA0014)
 
     ## Invoke-UrlDownload
     Invoke_UrlDownload_DownloadingFile = Downloading file from {0} to {1}. (IUD0001)

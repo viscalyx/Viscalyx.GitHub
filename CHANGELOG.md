@@ -47,6 +47,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced `Save-GitHubReleaseAsset` command with:
   - Added validation to check if the specified `Path` is a file rather than a
     directory, outputting a non-terminating error when a file path is provided.
+  - Added `SupportsShouldProcess` to enable `-WhatIf` and `-Confirm` support
+    for directory creation and file download operations, with `ConfirmImpact`
+    set to `Medium` to prompt for confirmation when `$ConfirmPreference` is
+    appropriately configured.
 - Enhanced `Invoke-UrlDownload` private function with:
   - Added `-Force` parameter to allow overwriting existing files.
   - Added file existence check that skips download if file already exists

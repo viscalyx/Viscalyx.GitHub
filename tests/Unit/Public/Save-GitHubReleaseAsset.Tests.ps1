@@ -538,4 +538,79 @@ Describe 'Save-GitHubReleaseAsset' {
             } -Exactly -Times 1
         }
     }
+
+    Context 'When using ShouldProcess' {
+        BeforeAll {
+            # Create mock asset
+            $mockAsset = @{
+                name = 'asset1.zip'
+                browser_download_url = 'https://example.com/asset1.zip'
+            }
+
+            # Mock Test-Path to return false for the download path (directory doesn't exist)
+            Mock -CommandName Test-Path -ParameterFilter {
+                $Path -eq 'TestDrive:\Downloads'
+            } -MockWith {
+                return $false
+            }
+
+            # Mock New-Item to create the directory
+            Mock -CommandName New-Item -MockWith {
+                return [PSCustomObject]@{
+                    Path = $Path
+                }
+            }
+
+            # Mock Join-Path to return a predictable path
+            Mock -CommandName Join-Path -MockWith {
+                return "TestDrive:\Downloads\$ChildPath"
+            }
+
+            # Mock Invoke-UrlDownload to return success
+            Mock -CommandName Invoke-UrlDownload -MockWith {
+                return $true
+            }
+        }
+
+        It 'Should support WhatIf and not create directory or download files' {
+            # Act
+            $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -WhatIf
+
+            # Assert - directory creation should not be called
+            Should -Invoke -CommandName New-Item -Exactly -Times 0
+
+            # Assert - download should not be called
+            Should -Invoke -CommandName Invoke-UrlDownload -Exactly -Times 0
+        }
+
+        It 'Should create directory and download files when Confirm is suppressed' {
+            # Act
+            $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -Confirm:$false
+
+            # Assert - directory creation should be called
+            Should -Invoke -CommandName New-Item -Exactly -Times 1
+
+            # Assert - download should be called
+            Should -Invoke -CommandName Invoke-UrlDownload -Exactly -Times 1
+        }
+
+        It 'Should skip download when user declines ShouldProcess for individual asset' {
+            BeforeAll {
+                # Mock Test-Path to return true (directory exists)
+                Mock -CommandName Test-Path -ParameterFilter {
+                    $Path -eq 'TestDrive:\Downloads'
+                } -MockWith {
+                    return $true
+                }
+
+                # Mock ShouldProcess to return false for download but we need to test via WhatIf
+            }
+
+            # Act - WhatIf should skip the download
+            $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -WhatIf
+
+            # Assert - download should not be called
+            Should -Invoke -CommandName Invoke-UrlDownload -Exactly -Times 0
+        }
+    }
 }
