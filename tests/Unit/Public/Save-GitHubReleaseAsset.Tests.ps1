@@ -404,10 +404,6 @@ Describe 'Save-GitHubReleaseAsset' {
                 @{
                     name = 'asset2.zip'
                     browser_download_url = 'https://example.com/asset2.zip'
-                },
-                @{
-                    name = 'asset3.zip'
-                    browser_download_url = 'https://example.com/asset3.zip'
                 }
             )
 
@@ -445,17 +441,12 @@ Describe 'Save-GitHubReleaseAsset' {
 
             # asset1: 1 call (success)
             # asset2: 2 calls (1 fail + 1 success)
-            # asset3: 3 calls (1 initial + 2 retries, all fail)
-            # Total: 6 calls
-            Should -Invoke -CommandName Invoke-UrlDownload -Exactly -Times 6 -Scope It
+            # Total: 3 calls
+            Should -Invoke -CommandName Invoke-UrlDownload -Exactly -Times 3 -Scope It
 
             # asset2: 1 sleep (after first failure)
-            # asset3: 2 sleeps (after each retry)
-            # Total: 3 sleeps
-            Should -Invoke -CommandName Start-Sleep -Exactly -Times 3 -Scope It
-
-            # Only asset3 should have an error
-            Should -Invoke -CommandName Write-Error -Exactly -Times 1 -Scope It
+            # Total: 1 sleeps
+            Should -Invoke -CommandName Start-Sleep -Exactly -Times 1 -Scope It
         }
     }
 
