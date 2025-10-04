@@ -38,8 +38,9 @@
     .OUTPUTS
         System.Boolean
 
-        Returns $true if the download was successful, or $false if the download was skipped
-        because the file already exists (when -Force is not specified).
+        Returns $true when the download succeeds or when the download is skipped because
+        the file already exists (when -Force is not specified). Returns nothing if an
+        error occurs and the function throws a terminating error.
 
     .NOTES
         This function is designed to be used internally by other commands within the module.
@@ -113,12 +114,15 @@ function Invoke-UrlDownload
 
     try
     {
+        $previousErrorActionPreference = $ErrorActionPreference
+        $ErrorActionPreference = 'Stop'
+
         # Create WebRequest parameters
         $webRequestParams = @{
             Uri         = $Uri
             OutFile     = $OutputPath
             UserAgent   = $UserAgent
-            ErrorAction = $ErrorActionPreference
+            ErrorAction = 'Stop'
         }
 
         <#
@@ -135,12 +139,16 @@ function Invoke-UrlDownload
         # This will handle the download and progress reporting automatically
         Invoke-WebRequest @webRequestParams
 
+        $ErrorActionPreference = $previousErrorActionPreference
+
         Write-Verbose -Message ($script:localizedData.Invoke_UrlDownload_DownloadCompleted -f $OutputPath)
 
         return $true
     }
     catch
     {
+        $ErrorActionPreference = $previousErrorActionPreference
+
         # Determine the type of error and provide specific error message
         $errorMessage = $_.Exception.Message
 
