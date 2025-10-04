@@ -107,12 +107,12 @@ function Save-GitHubReleaseAsset
 
         [Parameter(Mandatory = $true)]
         [ValidateScript({
-            if ((Test-Path -Path $_) -and -not (Test-Path -Path $_ -PathType Container))
-            {
-                throw ($script:localizedData.Save_GitHubReleaseAsset_PathIsFile -f $_)
-            }
-            return $true
-        })]
+                if ((Test-Path -Path $_) -and -not (Test-Path -Path $_ -PathType Container))
+                {
+                    throw ($script:localizedData.Save_GitHubReleaseAsset_PathIsFile -f $_)
+                }
+                return $true
+            })]
         [System.String]
         $Path,
 
@@ -132,8 +132,8 @@ function Save-GitHubReleaseAsset
 
         [Parameter()]
         [ValidateScript({
-            $_ -is [System.Collections.Hashtable] -or $_ -is [System.String]
-        })]
+                $_ -is [System.Collections.Hashtable] -or $_ -is [System.String]
+            })]
         [System.Object]
         $FileHash,
 
@@ -364,27 +364,27 @@ function Save-GitHubReleaseAsset
                 {
                     Write-Verbose -Message ($script:localizedData.Save_GitHubReleaseAsset_VerifyingHash -f $asset.name)
 
-                $actualHash = (Get-FileHash -Path $destination -Algorithm SHA256).Hash
+                    $actualHash = (Get-FileHash -Path $destination -Algorithm SHA256).Hash
 
-                if ($actualHash -ne $expectedHash)
-                {
-                    # Hash mismatch - delete the file and write error
-                    Remove-Item -Path $destination -Force
-
-                    $errorMessage = $script:localizedData.Save_GitHubReleaseAsset_HashMismatch -f $asset.name, $expectedHash, $actualHash
-
-                    if ($ErrorActionPreference -eq 'Stop')
+                    if ($actualHash -ne $expectedHash)
                     {
-                        throw $errorMessage
-                    }
-                    else
-                    {
-                        Write-Error -Message $errorMessage -Category InvalidData -ErrorId 'SGRA0002' -TargetObject $asset.name
-                    }
+                        # Hash mismatch - delete the file and write error
+                        Remove-Item -Path $destination -Force
 
-                    # Skip further processing for this asset
-                    continue
-                }
+                        $errorMessage = $script:localizedData.Save_GitHubReleaseAsset_HashMismatch -f $asset.name, $expectedHash, $actualHash
+
+                        if ($ErrorActionPreference -eq 'Stop')
+                        {
+                            throw $errorMessage
+                        }
+                        else
+                        {
+                            Write-Error -Message $errorMessage -Category InvalidData -ErrorId 'SGRA0002' -TargetObject $asset.name
+                        }
+
+                        # Skip further processing for this asset
+                        continue
+                    }
                     else
                     {
                         Write-Verbose -Message ($script:localizedData.Save_GitHubReleaseAsset_HashVerified -f $asset.name)
