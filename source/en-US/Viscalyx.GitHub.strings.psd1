@@ -48,7 +48,6 @@ ConvertFrom-StringData @'
     ## Invoke-UrlDownload
     Invoke_UrlDownload_DownloadingFile = Downloading file from {0} to {1}. (IUD0001)
     Invoke_UrlDownload_DownloadCompleted = Download completed successfully to {0}. (IUD0002)
-    Invoke_UrlDownload_FileExists = File already exists at '{0}'. Use -Force to overwrite. (IUD0004)
     Invoke_UrlDownload_SkippingDownload = Skipping download as file already exists at '{0}'. (IUD0005)
     Invoke_UrlDownload_NetworkError = Network error occurred while downloading from {0}: {1} (IUD0006)
     Invoke_UrlDownload_PermissionError = Permission denied when writing to '{0}': {1} (IUD0007)
