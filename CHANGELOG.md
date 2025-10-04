@@ -45,3 +45,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed README badges.
 - Fixed error message formatting in `Get-GitHubReleaseAsset` for asset name
   validation errors.
+- Prefixed all command invocations in integration tests with `Viscalyx.GitHub\`
+  to avoid accidentally invoking commands from other modules.

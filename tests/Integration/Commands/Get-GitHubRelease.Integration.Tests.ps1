@@ -53,7 +53,7 @@ Describe 'Get-GitHubRelease' {
                 $getReleaseParams.Token = $script:gitHubToken
             }
 
-            $releases = Get-GitHubRelease @getReleaseParams
+            $releases = Viscalyx.GitHub\Get-GitHubRelease @getReleaseParams
         }
 
         It 'Should return releases' {
@@ -90,7 +90,7 @@ Describe 'Get-GitHubRelease' {
                 $getReleaseParams.Token = $script:gitHubToken
             }
 
-            $release = Get-GitHubRelease @getReleaseParams
+            $release = Viscalyx.GitHub\Get-GitHubRelease @getReleaseParams
         }
 
         It 'Should return a single release' {
@@ -126,7 +126,7 @@ Describe 'Get-GitHubRelease' {
                 $getReleaseParams.Token = $script:gitHubToken
             }
 
-            $releases = Get-GitHubRelease @getReleaseParams
+            $releases = Viscalyx.GitHub\Get-GitHubRelease @getReleaseParams
 
             $prereleases = $releases |
                 Where-Object -FilterScript {
@@ -156,7 +156,7 @@ Describe 'Get-GitHubRelease' {
             }
 
             {
-                Get-GitHubRelease @getReleaseParams
+                Viscalyx.GitHub\Get-GitHubRelease @getReleaseParams
             } | Should -Throw
         }
 
@@ -172,7 +172,7 @@ Describe 'Get-GitHubRelease' {
                 $getReleaseParams.Token = $script:gitHubToken
             }
 
-            $result = Get-GitHubRelease @getReleaseParams
+            $result = Viscalyx.GitHub\Get-GitHubRelease @getReleaseParams
 
             $result | Should -BeNullOrEmpty
         }
