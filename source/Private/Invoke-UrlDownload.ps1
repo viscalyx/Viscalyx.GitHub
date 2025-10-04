@@ -173,38 +173,38 @@ function Invoke-UrlDownload
                     {
                         401
                         {
-                            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_UnauthorizedError -f $Uri, $errorMessage)
+                            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_UnauthorizedError -f $Uri, $errorMessage) -Category SecurityError -ErrorId 'Invoke_UrlDownload_Unauthorized' -TargetObject $Uri -Exception $_.Exception
                         }
 
                         404
                         {
-                            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_NotFoundError -f $Uri, $errorMessage)
+                            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_NotFoundError -f $Uri, $errorMessage) -Category ResourceUnavailable -ErrorId 'Invoke_UrlDownload_NotFound' -TargetObject $Uri -Exception $_.Exception
                         }
 
                         default
                         {
-                            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_NetworkError -f $Uri, $errorMessage)
+                            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_NetworkError -f $Uri, $errorMessage) -Category NotSpecified -ErrorId 'Invoke_UrlDownload_NetworkError' -TargetObject $Uri -Exception $_.Exception
                         }
                     }
                 }
                 else
                 {
-                    Write-Error -Message ($script:localizedData.Invoke_UrlDownload_NetworkError -f $Uri, $errorMessage)
+                    Write-Error -Message ($script:localizedData.Invoke_UrlDownload_NetworkError -f $Uri, $errorMessage) -Category NotSpecified -ErrorId 'Invoke_UrlDownload_NetworkError' -TargetObject $Uri -Exception $_.Exception
                 }
             }
             else
             {
-                Write-Error -Message ($script:localizedData.Invoke_UrlDownload_NetworkError -f $Uri, $errorMessage)
+                Write-Error -Message ($script:localizedData.Invoke_UrlDownload_NetworkError -f $Uri, $errorMessage) -Category NotSpecified -ErrorId 'Invoke_UrlDownload_NetworkError' -TargetObject $Uri -Exception $_.Exception
             }
         }
         elseif ($_.Exception -is [System.UnauthorizedAccessException] -or
                 ($_.Exception -is [System.IO.IOException] -and $errorMessage -match 'denied|access'))
         {
-            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_PermissionError -f $OutputPath, $errorMessage)
+            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_PermissionError -f $OutputPath, $errorMessage) -Category PermissionDenied -ErrorId 'Invoke_UrlDownload_PermissionError' -TargetObject $OutputPath -Exception $_.Exception
         }
         else
         {
-            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_UnknownError -f $Uri, $errorMessage)
+            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_UnknownError -f $Uri, $errorMessage) -Category NotSpecified -ErrorId 'Invoke_UrlDownload_UnknownError' -TargetObject $Uri -Exception $_.Exception
         }
 
         return $false
