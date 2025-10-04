@@ -51,7 +51,7 @@ Describe 'Save-GitHubReleaseAsset' {
                 return
             }
 
-            $null = $asset | Save-GitHubReleaseAsset -Path $TestDrive -Confirm:$false -Overwrite
+            $null = $asset | Save-GitHubReleaseAsset -Path $TestDrive -Confirm:$false -Overwrite -ErrorAction Stop
 
             # Assert - check if files were downloaded
             $downloadedFile = Join-Path -Path $TestDrive -ChildPath $asset.name
