@@ -389,7 +389,6 @@ Describe 'Save-GitHubReleaseAsset' {
                 throw 'Download failed'
             }
 
-
             {
                 $mockAsset |
                     Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 2 -Confirm:$false -ErrorAction 'Stop'
