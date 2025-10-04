@@ -107,7 +107,7 @@ function Save-GitHubReleaseAsset
 
         [Parameter(Mandatory = $true)]
         [ValidateScript({
-            if (Test-Path -Path $_ -PathType Leaf)
+            if ((Test-Path -Path $_) -and -not (Test-Path -Path $_ -PathType Container))
             {
                 throw ($script:localizedData.Save_GitHubReleaseAsset_PathIsFile -f $_)
             }

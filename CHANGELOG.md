@@ -51,6 +51,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added `-Force` parameter to allow overwriting existing files.
   - Added file existence check that skips download if file already exists
     (unless `-Force` is specified).
+  - Added directory validation that creates the output directory if it does not
+    exist, preventing runtime failures during file downloads.
+    (unless `-Force` is specified).
   - Enhanced error handling to differentiate between network errors (404, 401,
     general network issues), permission errors, and unknown errors with
     specific localized error messages for better troubleshooting.

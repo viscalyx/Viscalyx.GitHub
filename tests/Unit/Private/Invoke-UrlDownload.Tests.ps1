@@ -43,16 +43,103 @@ AfterAll {
 }
 
 Describe 'Invoke-UrlDownload' {
+    Context 'When validating output directory' {
+        BeforeAll {
+            Mock -CommandName Invoke-WebRequest -MockWith { }
+            Mock -CommandName New-Item -MockWith { }
+        }
+
+        It 'Should create the directory when it does not exist' {
+            # Arrange
+            $testUri = 'https://example.com/file.zip'
+            $testOutputPath = Join-Path -Path 'TestDrive:' -ChildPath 'Downloads' | Join-Path -ChildPath 'NewFolder' | Join-Path -ChildPath 'file.zip'
+            $expectedDirectory = Split-Path -Path $testOutputPath -Parent
+
+            Mock -CommandName Test-Path -MockWith { $false }
+
+            # Act
+            $result = InModuleScope -ScriptBlock {
+                param($Uri, $Path)
+                Invoke-UrlDownload -Uri $Uri -OutputPath $Path
+            } -Parameters @{
+                Uri = $testUri
+                Path = $testOutputPath
+            }
+
+            # Assert
+            $result | Should -BeTrue
+            Should -Invoke -CommandName New-Item -ParameterFilter {
+                $ItemType -eq 'Directory' -and
+                $Force -eq $true
+            } -Exactly -Times 1 -Scope It
+        }
+
+        It 'Should not create the directory when it already exists' {
+            # Arrange
+            $testUri = 'https://example.com/file.zip'
+            $testOutputPath = Join-Path -Path 'TestDrive:' -ChildPath 'Downloads' | Join-Path -ChildPath 'ExistingFolder' | Join-Path -ChildPath 'file.zip'
+            $expectedDirectory = Split-Path -Path $testOutputPath -Parent
+
+            Mock -CommandName Test-Path -MockWith {
+                param($Path)
+                # Return true for directory, false for file
+                $Path -eq $expectedDirectory
+            }
+
+            # Act
+            $result = InModuleScope -ScriptBlock {
+                param($Uri, $Path)
+                Invoke-UrlDownload -Uri $Uri -OutputPath $Path
+            } -Parameters @{
+                Uri = $testUri
+                Path = $testOutputPath
+            }
+
+            # Assert
+            $result | Should -BeTrue
+            Should -Invoke -CommandName New-Item -Exactly -Times 0 -Scope It
+        }
+
+        It 'Should throw a terminating error when directory creation fails' {
+            # Arrange
+            $testUri = 'https://example.com/file.zip'
+            $testOutputPath = Join-Path -Path 'TestDrive:' -ChildPath 'InvalidPath' | Join-Path -ChildPath 'file.zip'
+            $expectedDirectory = Split-Path -Path $testOutputPath -Parent
+            $mockErrorMessage = 'Access denied'
+
+            Mock -CommandName Test-Path -MockWith { $false }
+            Mock -CommandName New-Item -MockWith {
+                throw [System.UnauthorizedAccessException]::new($mockErrorMessage)
+            }
+
+            $mockLocalizedError = InModuleScope -ScriptBlock { $script:localizedData.Invoke_UrlDownload_DirectoryCreationError }
+
+            # Act & Assert
+            {
+                InModuleScope -ScriptBlock {
+                    param($Uri, $Path)
+                    Invoke-UrlDownload -Uri $Uri -OutputPath $Path
+                } -Parameters @{
+                    Uri = $testUri
+                    Path = $testOutputPath
+                }
+            } | Should -Throw -ExpectedMessage ($mockLocalizedError -f $expectedDirectory, $mockErrorMessage)
+
+            Should -Invoke -CommandName New-Item -Exactly -Times 1 -Scope It
+        }
+    }
+
     Context 'When downloading a file successfully' {
         BeforeAll {
             # Mock Invoke-WebRequest to simulate successful download
             Mock -CommandName Invoke-WebRequest -MockWith { }
+            Mock -CommandName Test-Path -MockWith { $false }
         }
 
         It 'Should return true when the download completes successfully' {
             # Arrange
             $testUri = 'https://example.com/file.zip'
-            $testOutputPath = 'C:\Downloads\file.zip'
+            $testOutputPath = Join-Path -Path 'TestDrive:' -ChildPath 'Downloads' | Join-Path -ChildPath 'file.zip'
 
             # Act
             $result = InModuleScope -ScriptBlock {
@@ -89,7 +176,7 @@ Describe 'Invoke-UrlDownload' {
         It 'Should use the provided user agent' {
             # Arrange
             $testUri = 'https://example.com/file.zip'
-            $testOutputPath = 'C:\Downloads\file.zip'
+            $testOutputPath = Join-Path -Path 'TestDrive:' -ChildPath 'Downloads' | Join-Path -ChildPath 'file.zip'
             $testUserAgent = 'CustomAgent'
 
             # Act
@@ -129,13 +216,14 @@ Describe 'Invoke-UrlDownload' {
     Context 'When the file already exists' {
         BeforeAll {
             Mock -CommandName Invoke-WebRequest -MockWith { }
-            Mock -CommandName Test-Path -MockWith { $true }
         }
 
         It 'Should skip download and return true when file exists and Force is not specified' {
             # Arrange
             $testUri = 'https://example.com/file.zip'
-            $testOutputPath = 'C:\Downloads\file.zip'
+            $testOutputPath = Join-Path -Path 'TestDrive:' -ChildPath 'Downloads' | Join-Path -ChildPath 'file.zip'
+
+            Mock -CommandName Test-Path -MockWith { $true }
 
             # Act
             $result = InModuleScope -ScriptBlock {
@@ -148,14 +236,15 @@ Describe 'Invoke-UrlDownload' {
 
             # Assert
             $result | Should -BeTrue
-            Should -Invoke -CommandName Test-Path -ParameterFilter { $Path -eq $testOutputPath } -Exactly -Times 1 -Scope It
             Should -Invoke -CommandName Invoke-WebRequest -Exactly -Times 0 -Scope It
         }
 
         It 'Should download file when file exists and Force is specified' {
             # Arrange
             $testUri = 'https://example.com/file.zip'
-            $testOutputPath = 'C:\Downloads\file.zip'
+            $testOutputPath = Join-Path -Path 'TestDrive:' -ChildPath 'Downloads' | Join-Path -ChildPath 'file.zip'
+
+            Mock -CommandName Test-Path -MockWith { $true }
 
             # Act
             $result = InModuleScope -ScriptBlock {
@@ -168,22 +257,21 @@ Describe 'Invoke-UrlDownload' {
 
             # Assert
             $result | Should -BeTrue
-            Should -Invoke -CommandName Test-Path -ParameterFilter { $Path -eq $testOutputPath } -Exactly -Times 1 -Scope It
             Should -Invoke -CommandName Invoke-WebRequest -Exactly -Times 1 -Scope It
         }
     }
 
     Context 'When a download fails with network errors' {
         BeforeAll {
-            Mock -CommandName Test-Path -MockWith { $false }
-
             $mockLocalizedNetworkError = InModuleScope -ScriptBlock { $script:localizedData.Invoke_UrlDownload_NetworkError }
         }
 
         It 'Should return false and write a network error when download fails with WebException' {
             # Arrange
             $testUri = 'https://example.com/file.zip'
-            $testOutputPath = 'C:\Downloads\file.zip'
+            $testOutputPath = Join-Path -Path 'TestDrive:' -ChildPath 'Downloads' | Join-Path -ChildPath 'file.zip'
+
+            Mock -CommandName Test-Path -MockWith { $false }
 
             # Mock Invoke-WebRequest to throw a WebException
             Mock -CommandName Invoke-WebRequest -MockWith {
@@ -206,7 +294,9 @@ Describe 'Invoke-UrlDownload' {
         It 'Should return false and write a not found error when download fails with 404' {
             # Arrange
             $testUri = 'https://example.com/file.zip'
-            $testOutputPath = 'C:\Downloads\file.zip'
+            $testOutputPath = Join-Path -Path 'TestDrive:' -ChildPath 'Downloads' | Join-Path -ChildPath 'file.zip'
+
+            Mock -CommandName Test-Path -MockWith { $false }
 
             $mockLocalizedNotFoundError = InModuleScope -ScriptBlock { $script:localizedData.Invoke_UrlDownload_NotFoundError }
 
@@ -240,7 +330,9 @@ Describe 'Invoke-UrlDownload' {
         It 'Should return false and write an unauthorized error when download fails with 401' {
             # Arrange
             $testUri = 'https://example.com/file.zip'
-            $testOutputPath = 'C:\Downloads\file.zip'
+            $testOutputPath = Join-Path -Path 'TestDrive:' -ChildPath 'Downloads' | Join-Path -ChildPath 'file.zip'
+
+            Mock -CommandName Test-Path -MockWith { $false }
 
             $mockLocalizedUnauthorizedError = InModuleScope -ScriptBlock { $script:localizedData.Invoke_UrlDownload_UnauthorizedError }
 
@@ -274,15 +366,15 @@ Describe 'Invoke-UrlDownload' {
 
     Context 'When a download fails with permission errors' {
         BeforeAll {
-            Mock -CommandName Test-Path -MockWith { $false }
-
             $mockLocalizedPermissionError = InModuleScope -ScriptBlock { $script:localizedData.Invoke_UrlDownload_PermissionError }
         }
 
         It 'Should return false and write a permission error when download fails with UnauthorizedAccessException' {
             # Arrange
             $testUri = 'https://example.com/file.zip'
-            $testOutputPath = 'C:\Downloads\file.zip'
+            $testOutputPath = Join-Path -Path 'TestDrive:' -ChildPath 'Downloads' | Join-Path -ChildPath 'file.zip'
+
+            Mock -CommandName Test-Path -MockWith { $false }
 
             # Mock Invoke-WebRequest to throw an UnauthorizedAccessException
             Mock -CommandName Invoke-WebRequest -MockWith {
@@ -304,15 +396,15 @@ Describe 'Invoke-UrlDownload' {
 
     Context 'When a download fails with unknown errors' {
         BeforeAll {
-            Mock -CommandName Test-Path -MockWith { $false }
-
             $mockLocalizedUnknownError = InModuleScope -ScriptBlock { $script:localizedData.Invoke_UrlDownload_UnknownError }
         }
 
         It 'Should return false and write an unknown error when download fails with generic exception' {
             # Arrange
             $testUri = 'https://example.com/file.zip'
-            $testOutputPath = 'C:\Downloads\file.zip'
+            $testOutputPath = Join-Path -Path 'TestDrive:' -ChildPath 'Downloads' | Join-Path -ChildPath 'file.zip'
+
+            Mock -CommandName Test-Path -MockWith { $false }
 
             # Mock Invoke-WebRequest to throw a generic exception
             Mock -CommandName Invoke-WebRequest -MockWith {

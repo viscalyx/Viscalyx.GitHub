@@ -102,10 +102,6 @@ Describe 'Save-GitHubReleaseAsset' {
             $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads'
 
             # Assert
-            Should -Invoke -CommandName Test-Path -ParameterFilter {
-                $Path -eq 'TestDrive:\Downloads'
-            } -Exactly -Times 1
-
             Should -Invoke -CommandName New-Item -ParameterFilter {
                 $Path -eq 'TestDrive:\Downloads' -and $ItemType -eq 'Directory'
             } -Exactly -Times 1

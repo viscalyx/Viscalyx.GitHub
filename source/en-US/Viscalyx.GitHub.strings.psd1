@@ -47,4 +47,6 @@ ConvertFrom-StringData @'
     Invoke_UrlDownload_UnauthorizedError = Unauthorized access to {0}. Check authentication credentials: {1}
     Invoke_UrlDownload_NotFoundError = The requested resource was not found at {0}: {1}
     Invoke_UrlDownload_UnknownError = An unexpected error occurred during download from {0}: {1}
+    Invoke_UrlDownload_CreatingDirectory = Creating output directory '{0}'. (IUD0001)
+    Invoke_UrlDownload_DirectoryCreationError = Failed to create output directory '{0}': {1} (IUD0002)
 '@

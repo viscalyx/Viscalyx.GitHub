@@ -58,6 +58,32 @@ function Invoke-UrlDownload
         $Force
     )
 
+    # Validate and create output directory if needed
+    $outputDirectory = Split-Path -Path $OutputPath -Parent
+
+    if (-not (Test-Path -Path $outputDirectory))
+    {
+        try
+        {
+            Write-Verbose -Message ($script:localizedData.Invoke_UrlDownload_CreatingDirectory -f $outputDirectory)
+
+            $null = New-Item -Path $outputDirectory -ItemType Directory -Force -ErrorAction Stop
+        }
+        catch
+        {
+            $errorMessage = $script:localizedData.Invoke_UrlDownload_DirectoryCreationError -f $outputDirectory, $_.Exception.Message
+
+            $PSCmdlet.ThrowTerminatingError(
+                [System.Management.Automation.ErrorRecord]::new(
+                    ($errorMessage),
+                    'IUD0001',
+                    [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                    $outputDirectory
+                )
+            )
+        }
+    }
+
     # Check if file already exists
     if (Test-Path -Path $OutputPath)
     {
