@@ -39,8 +39,9 @@
         System.Boolean
 
         Returns $true when the download succeeds or when the download is skipped because
-        the file already exists (when -Force is not specified). Returns nothing if an
-        error occurs and the function throws a terminating error.
+        the file already exists (when -Force is not specified). Returns $false when a
+        non-terminating error occurs. A terminating error will throw and produce no
+        return value.
 
     .NOTES
         This function is designed to be used internally by other commands within the module.
