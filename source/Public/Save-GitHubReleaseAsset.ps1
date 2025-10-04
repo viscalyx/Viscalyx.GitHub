@@ -325,7 +325,7 @@ function Save-GitHubReleaseAsset
                         # Create an ErrorRecord with full metadata using the captured exception
                         $errorRecord = [System.Management.Automation.ErrorRecord]::new(
                             $lastException.Exception,
-                            'SGRA0001',
+                            'SGRA0006',
                             [System.Management.Automation.ErrorCategory]::OperationStopped,
                             $asset.name
                         )
@@ -335,7 +335,7 @@ function Save-GitHubReleaseAsset
                     else
                     {
                         # Fallback if no exception was captured
-                        Write-Error -Message $errorMessage -Category OperationStopped -ErrorId 'SGRA0001' -TargetObject $asset.name
+                        Write-Error -Message $errorMessage -Category OperationStopped -ErrorId 'SGRA0006' -TargetObject $asset.name
                     }
                 }
             }

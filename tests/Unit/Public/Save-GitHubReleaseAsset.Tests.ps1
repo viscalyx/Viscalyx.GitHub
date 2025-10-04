@@ -401,7 +401,7 @@ Describe 'Save-GitHubReleaseAsset' {
             Should -Invoke -CommandName Write-Error -ParameterFilter {
                 $ErrorRecord -and
                 $ErrorRecord.ErrorDetails.Message -eq ($mockLocalizedDownloadFailed -f 'test-asset.zip') -and
-                $ErrorRecord.FullyQualifiedErrorId -eq 'SGRA0001' -and
+                $ErrorRecord.FullyQualifiedErrorId -eq 'SGRA0006' -and
                 $ErrorRecord.TargetObject -eq 'test-asset.zip'
             } -Exactly -Times 1 -Scope It
         }
