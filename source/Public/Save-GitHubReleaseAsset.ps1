@@ -252,11 +252,11 @@ function Save-GitHubReleaseAsset
         {
             $asset = $assetsToDownload[$i]
             $destination = Join-Path -Path $Path -ChildPath $asset.name
-            $activityMessage = "Downloading $($asset.name) [$($i+1)/$($assetsToDownload.Count)]"
+            $activityMessage = $script:localizedData.Save_GitHubReleaseAsset_Progress_DownloadingAssets_Status -f $asset.name, ($i + 1), $assetsToDownload.Count
             $percentComplete = [System.Math]::Round((($i + 1) / $assetsToDownload.Count) * 100)
 
             # Show progress
-            Write-Progress -Activity 'Downloading GitHub Release Assets' -Status $activityMessage -PercentComplete $percentComplete
+            Write-Progress -Activity $script:localizedData.Save_GitHubReleaseAsset_Progress_DownloadingAssets_Activity -Status $activityMessage -PercentComplete $percentComplete
 
             Write-Verbose -Message ($script:localizedData.Save_GitHubReleaseAsset_DownloadingAsset -f $asset.name, $destination)
 
@@ -373,7 +373,7 @@ function Save-GitHubReleaseAsset
         }
 
         # Complete the progress bar
-        Write-Progress -Activity 'Downloading GitHub Release Assets' -Completed
+        Write-Progress -Activity $script:localizedData.Save_GitHubReleaseAsset_Progress_DownloadingAssets_Activity -Completed
 
         Write-Verbose -Message $script:localizedData.Save_GitHubReleaseAsset_DownloadsCompleted
     }

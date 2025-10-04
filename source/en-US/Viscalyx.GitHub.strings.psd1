@@ -42,6 +42,8 @@ ConvertFrom-StringData @'
     Save_GitHubReleaseAsset_ShouldProcessDownloadQuestion = Are you sure you want to download this asset?
     Save_GitHubReleaseAsset_ShouldProcessDownloadCaption = Download GitHub release asset
     Save_GitHubReleaseAsset_SkippedByUser = Asset '{0}' download was skipped by user. (SGRA0014)
+    Save_GitHubReleaseAsset_Progress_DownloadingAssets_Activity = Downloading GitHub Release Assets (SGRA0015)
+    Save_GitHubReleaseAsset_Progress_DownloadingAssets_Status = Downloading {0} [{1}/{2}] (SGRA0016)
 
     ## Invoke-UrlDownload
     Invoke_UrlDownload_DownloadingFile = Downloading file from {0} to {1}. (IUD0001)
