@@ -152,12 +152,15 @@ function Invoke-UrlDownload
     {
         $ErrorActionPreference = $previousErrorActionPreference
 
-        # Determine the type of error and provide specific error message
-        $errorMessage = $_.Exception.Message
+        # Save the error record before entering any switch or other context-changing statements
+        $errorRecord = $_
 
-        if ($_.Exception -is [System.Net.WebException])
+        # Determine the type of error and provide specific error message
+        $errorMessage = $errorRecord.Exception.Message
+
+        if ($errorRecord.Exception -is [System.Net.WebException])
         {
-            $webException = $_.Exception -as [System.Net.WebException]
+            $webException = $errorRecord.Exception -as [System.Net.WebException]
 
             # Check if there's an HTTP response
             if ($webException.Response)
@@ -173,38 +176,52 @@ function Invoke-UrlDownload
                     {
                         401
                         {
-                            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_UnauthorizedError -f $Uri, $errorMessage) -Category SecurityError -ErrorId 'Invoke_UrlDownload_Unauthorized' -TargetObject $Uri -Exception $_.Exception
+                            $exception = New-Exception -Message ($script:localizedData.Invoke_UrlDownload_UnauthorizedError -f $Uri, $errorMessage) -ErrorRecord $errorRecord
+
+                            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_UnauthorizedError -f $Uri, $errorMessage) -Category SecurityError -ErrorId 'Invoke_UrlDownload_Unauthorized' -TargetObject $Uri -Exception $exception
                         }
 
                         404
                         {
-                            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_NotFoundError -f $Uri, $errorMessage) -Category ResourceUnavailable -ErrorId 'Invoke_UrlDownload_NotFound' -TargetObject $Uri -Exception $_.Exception
+                            $exception = New-Exception -Message ($script:localizedData.Invoke_UrlDownload_NotFoundError -f $Uri, $errorMessage) -ErrorRecord $errorRecord
+
+                            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_NotFoundError -f $Uri, $errorMessage) -Category ResourceUnavailable -ErrorId 'Invoke_UrlDownload_NotFound' -TargetObject $Uri -Exception $exception
                         }
 
                         default
                         {
-                            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_NetworkError -f $Uri, $errorMessage) -Category NotSpecified -ErrorId 'Invoke_UrlDownload_NetworkError' -TargetObject $Uri -Exception $_.Exception
+                            $exception = New-Exception -Message ($script:localizedData.Invoke_UrlDownload_NetworkError -f $Uri, $errorMessage) -ErrorRecord $errorRecord
+
+                            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_NetworkError -f $Uri, $errorMessage) -Category NotSpecified -ErrorId 'Invoke_UrlDownload_NetworkError' -TargetObject $Uri -Exception $exception
                         }
                     }
                 }
                 else
                 {
-                    Write-Error -Message ($script:localizedData.Invoke_UrlDownload_NetworkError -f $Uri, $errorMessage) -Category NotSpecified -ErrorId 'Invoke_UrlDownload_NetworkError' -TargetObject $Uri -Exception $_.Exception
+                    $exception = New-Exception -Message ($script:localizedData.Invoke_UrlDownload_NetworkError -f $Uri, $errorMessage) -ErrorRecord $errorRecord
+
+                    Write-Error -Message ($script:localizedData.Invoke_UrlDownload_NetworkError -f $Uri, $errorMessage) -Category NotSpecified -ErrorId 'Invoke_UrlDownload_NetworkError' -TargetObject $Uri -Exception $exception
                 }
             }
             else
             {
-                Write-Error -Message ($script:localizedData.Invoke_UrlDownload_NetworkError -f $Uri, $errorMessage) -Category NotSpecified -ErrorId 'Invoke_UrlDownload_NetworkError' -TargetObject $Uri -Exception $_.Exception
+                $exception = New-Exception -Message ($script:localizedData.Invoke_UrlDownload_NetworkError -f $Uri, $errorMessage) -ErrorRecord $errorRecord
+
+                Write-Error -Message ($script:localizedData.Invoke_UrlDownload_NetworkError -f $Uri, $errorMessage) -Category NotSpecified -ErrorId 'Invoke_UrlDownload_NetworkError' -TargetObject $Uri -Exception $exception
             }
         }
-        elseif ($_.Exception -is [System.UnauthorizedAccessException] -or
-                ($_.Exception -is [System.IO.IOException] -and $errorMessage -match 'denied|access'))
+        elseif ($errorRecord.Exception -is [System.UnauthorizedAccessException] -or
+                ($errorRecord.Exception -is [System.IO.IOException] -and $errorMessage -match 'denied|access'))
         {
-            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_PermissionError -f $OutputPath, $errorMessage) -Category PermissionDenied -ErrorId 'Invoke_UrlDownload_PermissionError' -TargetObject $OutputPath -Exception $_.Exception
+            $exception = New-Exception -Message ($script:localizedData.Invoke_UrlDownload_PermissionError -f $OutputPath, $errorMessage) -ErrorRecord $errorRecord
+
+            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_PermissionError -f $OutputPath, $errorMessage) -Category PermissionDenied -ErrorId 'Invoke_UrlDownload_PermissionError' -TargetObject $OutputPath -Exception $exception
         }
         else
         {
-            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_UnknownError -f $Uri, $errorMessage) -Category NotSpecified -ErrorId 'Invoke_UrlDownload_UnknownError' -TargetObject $Uri -Exception $_.Exception
+            $exception = New-Exception -Message ($script:localizedData.Invoke_UrlDownload_UnknownError -f $Uri, $errorMessage) -ErrorRecord $errorRecord
+
+            Write-Error -Message ($script:localizedData.Invoke_UrlDownload_UnknownError -f $Uri, $errorMessage) -Category NotSpecified -ErrorId 'Invoke_UrlDownload_UnknownError' -TargetObject $Uri -Exception $exception
         }
 
         return $false
