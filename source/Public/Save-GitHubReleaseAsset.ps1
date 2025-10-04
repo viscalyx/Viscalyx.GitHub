@@ -200,7 +200,8 @@ function Save-GitHubReleaseAsset
     {
         if ($assetsToDownload.Count -eq 0)
         {
-            Write-Warning -Message $script:localizedData.Save_GitHubReleaseAsset_NoAssetsToDownload
+            Write-Error -Message $script:localizedData.Save_GitHubReleaseAsset_NoAssetsToDownload -Category ObjectNotFound -ErrorId 'SGRA0003' -TargetObject $AssetName
+
             return
         }
 

@@ -155,7 +155,7 @@ Describe 'Save-GitHubReleaseAsset' {
             }
 
             # Mock Write-Warning
-            Mock -CommandName Write-Warning -MockWith { }
+            Mock -CommandName Write-Error
         }
 
         It 'Should download only assets matching the AssetName filter' {
@@ -169,12 +169,12 @@ Describe 'Save-GitHubReleaseAsset' {
             }
         }
 
-        It 'Should show warning when no assets match the filter' {
+        It 'Should throw non-terminating error when no assets match the filter' {
             # Act
             $mockAssets | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -AssetName 'nonexistent*'
 
             # Assert
-            Should -Invoke -CommandName Write-Warning -ParameterFilter {
+            Should -Invoke -CommandName Write-Error -ParameterFilter {
                 $Message -eq $mockLocalizedNoAssetsToDownload
             } -Exactly -Times 1
 
@@ -465,11 +465,8 @@ Describe 'Save-GitHubReleaseAsset' {
                 return $true
             }
 
-            # Mock Write-Warning
-            Mock -CommandName Write-Warning -MockWith { }
-
             # Mock Write-Error
-            Mock -CommandName Write-Error -MockWith { }
+            Mock -CommandName Write-Error
         }
 
         It 'Should show warning when empty asset list is provided and not attempt downloads' {
@@ -480,7 +477,7 @@ Describe 'Save-GitHubReleaseAsset' {
             Save-GitHubReleaseAsset -InputObject $emptyAssets -Path 'TestDrive:\Downloads'
 
             # Assert
-            Should -Invoke -CommandName Write-Warning -ParameterFilter {
+            Should -Invoke -CommandName Write-Error -ParameterFilter {
                 $Message -eq $mockLocalizedNoAssetsToDownload
             } -Exactly -Times 1
 
@@ -493,8 +490,7 @@ Describe 'Save-GitHubReleaseAsset' {
 
             # Assert
             Should -Not -Invoke -CommandName Invoke-UrlDownload
-            Should -Invoke -CommandName Write-Warning -Exactly -Times 1 -Scope It
-            Should -Not -Invoke -CommandName Write-Error
+            Should -Invoke -CommandName Write-Error
         }
     }
 
