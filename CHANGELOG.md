@@ -64,6 +64,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced `Save-GitHubReleaseAsset` command with:
   - Added `-Force` parameter that is passed through to `Invoke-UrlDownload` to
     allow overwriting existing downloaded files.
+  - Improved error reporting for download failures and hash mismatches by
+    including full error metadata (ErrorId, Category, TargetObject) to provide
+    better diagnostic information for troubleshooting.
 
 ### Fixed
 

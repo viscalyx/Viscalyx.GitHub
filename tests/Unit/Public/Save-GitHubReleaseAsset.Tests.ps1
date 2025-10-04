@@ -370,9 +370,12 @@ Describe 'Save-GitHubReleaseAsset' {
             # Act
             $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 2
 
-            # Assert
+            # Assert - Should write error with ErrorRecord containing full metadata
             Should -Invoke -CommandName Write-Error -ParameterFilter {
-                $Message -eq ($mockLocalizedDownloadFailed -f 'test-asset.zip')
+                $ErrorRecord -and
+                $ErrorRecord.ErrorDetails.Message -eq ($mockLocalizedDownloadFailed -f 'test-asset.zip') -and
+                $ErrorRecord.FullyQualifiedErrorId -eq 'SGRA0001' -and
+                $ErrorRecord.TargetObject -eq 'test-asset.zip'
             } -Exactly -Times 1 -Scope It
         }
 

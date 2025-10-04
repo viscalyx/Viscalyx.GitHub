@@ -274,6 +274,7 @@ function Save-GitHubReleaseAsset
             # Use the private function to download the file with retry logic
             $attempt = 0
             $downloadSuccessful = $false
+            $lastException = $null
 
             while ($attempt -le $MaxRetries -and -not $downloadSuccessful)
             {
@@ -286,6 +287,8 @@ function Save-GitHubReleaseAsset
                 }
                 catch
                 {
+                    $lastException = $_
+
                     if ($attempt -le $MaxRetries)
                     {
                         # Calculate exponential backoff: 2^attempt seconds
@@ -315,7 +318,25 @@ function Save-GitHubReleaseAsset
                 }
                 else
                 {
-                    Write-Error -Message ($script:localizedData.Save_GitHubReleaseAsset_DownloadFailed -f $asset.name)
+                    $errorMessage = $script:localizedData.Save_GitHubReleaseAsset_DownloadFailed -f $asset.name
+
+                    if ($lastException)
+                    {
+                        # Create an ErrorRecord with full metadata using the captured exception
+                        $errorRecord = [System.Management.Automation.ErrorRecord]::new(
+                            $lastException.Exception,
+                            'SGRA0001',
+                            [System.Management.Automation.ErrorCategory]::OperationStopped,
+                            $asset.name
+                        )
+                        $errorRecord.ErrorDetails = [System.Management.Automation.ErrorDetails]::new($errorMessage)
+                        Write-Error -ErrorRecord $errorRecord
+                    }
+                    else
+                    {
+                        # Fallback if no exception was captured
+                        Write-Error -Message $errorMessage -Category OperationStopped -ErrorId 'SGRA0001' -TargetObject $asset.name
+                    }
                 }
             }
 
@@ -358,7 +379,7 @@ function Save-GitHubReleaseAsset
                     }
                     else
                     {
-                        Write-Error -Message $errorMessage
+                        Write-Error -Message $errorMessage -Category InvalidData -ErrorId 'SGRA0002' -TargetObject $asset.name
                     }
 
                     # Skip further processing for this asset
