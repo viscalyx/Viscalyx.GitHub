@@ -4,9 +4,13 @@
 
     .DESCRIPTION
         The Invoke-UrlDownload function downloads a file from a specified URL to a
-        local destination path. It displays download progress using Write-Progress
-        and handles download completion events. This function supports user agent
-        configuration and proper error handling for failed downloads.
+        local destination path. It uses PowerShell's Invoke-WebRequest to perform
+        the download and relies on Invoke-WebRequest's built-in progress reporting
+        rather than implementing its own Write-Progress callbacks. The function
+        supports specifying a User-Agent header and includes robust error handling
+        for HTTP errors (for example 401 and 404), network issues, and file system
+        permission errors. The function will create the output directory if needed
+        and honors the -Force switch to overwrite existing files.
 
     .PARAMETER Uri
         Specifies the URL from which to download the file.
