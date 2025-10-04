@@ -52,11 +52,11 @@ Describe 'Get-GitHubReleaseAsset' {
         }
 
         It 'Should not throw when retrieving the latest release asset' {
-            { Get-GitHubReleaseAsset @getGitHubReleaseParameters } | Should -Not -Throw
+            { Viscalyx.GitHub\Get-GitHubReleaseAsset @getGitHubReleaseParameters } | Should -Not -Throw
         }
 
         It 'Should return the correct metadata format' {
-            $result = Get-GitHubReleaseAsset @getGitHubReleaseParameters
+            $result = Viscalyx.GitHub\Get-GitHubReleaseAsset @getGitHubReleaseParameters
 
             $result | Should -Not -BeNullOrEmpty
             $result.Name | Should -Match 'PowerShell-.*\.zip$'
@@ -81,7 +81,7 @@ Describe 'Get-GitHubReleaseAsset' {
         }
 
         It 'Should not throw when retrieving the latest release asset including prereleases' {
-            { Get-GitHubReleaseAsset @getGitHubReleaseParameters } | Should -Not -Throw
+            { Viscalyx.GitHub\Get-GitHubReleaseAsset @getGitHubReleaseParameters } | Should -Not -Throw
         }
     }
 
@@ -100,7 +100,7 @@ Describe 'Get-GitHubReleaseAsset' {
         }
 
         It 'Should throw when accessing a nonexistent repository' {
-            { Get-GitHubReleaseAsset @getGitHubReleaseParameters -ErrorAction 'Stop' } | Should -Throw
+            { Viscalyx.GitHub\Get-GitHubReleaseAsset @getGitHubReleaseParameters -ErrorAction 'Stop' } | Should -Throw
         }
     }
 
@@ -120,7 +120,7 @@ Describe 'Get-GitHubReleaseAsset' {
 
         It 'Should not throw but return null when the asset is not found' {
             {
-                $result = Get-GitHubReleaseAsset @getGitHubReleaseParameters -ErrorAction 'Stop'
+                $result = Viscalyx.GitHub\Get-GitHubReleaseAsset @getGitHubReleaseParameters -ErrorAction 'Stop'
             } |  Should -Throw
         }
     }
@@ -139,7 +139,7 @@ Describe 'Get-GitHubReleaseAsset' {
         }
 
         It 'Should correctly process release objects received through the pipeline' {
-            $release = Get-GitHubRelease @getGitHubReleaseParameters |
+            $release = Viscalyx.GitHub\Get-GitHubRelease @getGitHubReleaseParameters |
                 Where-Object -FilterScript {
                     $_.prerelease -eq $false -and $_.draft -eq $false
                 } |
@@ -147,7 +147,7 @@ Describe 'Get-GitHubReleaseAsset' {
 
             $release | Should -Not -BeNullOrEmpty
 
-            $result = $release | Get-GitHubReleaseAsset -AssetName 'PowerShell-*.zip'
+            $result = $release | Viscalyx.GitHub\Get-GitHubReleaseAsset -AssetName 'PowerShell-*.zip'
 
             $result | Should -Not -BeNullOrEmpty
             $result.Name | Should -Match 'PowerShell-.*\.zip$'
@@ -158,7 +158,7 @@ Describe 'Get-GitHubReleaseAsset' {
         Context 'When asset does not exist' {
             It 'Should not throw but return null when the asset is not found' {
 
-                $release = Get-GitHubRelease @getGitHubReleaseParameters |
+                $release = Viscalyx.GitHub\Get-GitHubRelease @getGitHubReleaseParameters |
                     Where-Object -FilterScript {
                         $_.prerelease -eq $false -and $_.draft -eq $false
                     } |
@@ -167,7 +167,7 @@ Describe 'Get-GitHubReleaseAsset' {
                 $release | Should -Not -BeNullOrEmpty
 
                 {
-                    $release | Get-GitHubReleaseAsset -AssetName 'NonExistentAsset9876543210.zip' -ErrorAction 'Stop'
+                    $release | Viscalyx.GitHub\Get-GitHubReleaseAsset -AssetName 'NonExistentAsset9876543210.zip' -ErrorAction 'Stop'
                 } |  Should -Throw
             }
         }
@@ -187,7 +187,7 @@ Describe 'Get-GitHubReleaseAsset' {
         }
 
         It 'Should correctly process multiple release objects received through the pipeline' {
-            $releases = Get-GitHubRelease @getGitHubReleaseParameters |
+            $releases = Viscalyx.GitHub\Get-GitHubRelease @getGitHubReleaseParameters |
                 Where-Object -FilterScript {
                     $_.prerelease -eq $false -and $_.draft -eq $false
                 } |
@@ -196,7 +196,7 @@ Describe 'Get-GitHubReleaseAsset' {
             $releases | Should -Not -BeNullOrEmpty
             $releases.Count | Should -BeGreaterOrEqual 1
 
-            $result = $releases | Get-GitHubReleaseAsset -AssetName 'PowerShell-*win-arm64.zip'
+            $result = $releases | Viscalyx.GitHub\Get-GitHubReleaseAsset -AssetName 'PowerShell-*win-arm64.zip'
 
             $result | Should -Not -BeNullOrEmpty
 
@@ -223,7 +223,7 @@ Describe 'Get-GitHubReleaseAsset' {
 
         It 'Should throw non-terminating error but return null' {
             # Find a release with assets so we can create a mock release without assets
-            $release = Get-GitHubRelease @getGitHubReleaseParameters |
+            $release = Viscalyx.GitHub\Get-GitHubRelease @getGitHubReleaseParameters |
                 Where-Object -FilterScript {
                     $_.prerelease -eq $false -and $_.draft -eq $false
                 } |
@@ -239,13 +239,13 @@ Describe 'Get-GitHubReleaseAsset' {
             $mockReleaseWithoutAssets.assets.Count | Should -Be 0
 
             # Test the behavior with a release that has no assets
-            $result = $mockReleaseWithoutAssets | Get-GitHubReleaseAsset -AssetName 'PowerShell-*.zip' -ErrorAction 'SilentlyContinue'
+            $result = $mockReleaseWithoutAssets | Viscalyx.GitHub\Get-GitHubReleaseAsset -AssetName 'PowerShell-*.zip' -ErrorAction 'SilentlyContinue'
             $result | Should -BeNullOrEmpty
         }
 
         It 'Should throw terminating error with ErrorAction set to Stop' {
             # Find a release with assets
-            $release = Get-GitHubRelease @getGitHubReleaseParameters |
+            $release = Viscalyx.GitHub\Get-GitHubRelease @getGitHubReleaseParameters |
                 Where-Object -FilterScript {
                     $_.prerelease -eq $false -and $_.draft -eq $false
                 } |
@@ -254,7 +254,7 @@ Describe 'Get-GitHubReleaseAsset' {
             $release | Should -Not -BeNullOrEmpty
 
             {
-                $release | Get-GitHubReleaseAsset -AssetName 'CompletelyNonExistentPattern*.xyz' -ErrorAction 'Stop'
+                $release | Viscalyx.GitHub\Get-GitHubReleaseAsset -AssetName 'CompletelyNonExistentPattern*.xyz' -ErrorAction 'Stop'
             } | Should -Throw
         }
     }
