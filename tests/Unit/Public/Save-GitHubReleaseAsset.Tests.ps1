@@ -52,6 +52,33 @@ AfterAll {
 }
 
 Describe 'Save-GitHubReleaseAsset' {
+    Context 'When validating parameter sets' {
+        BeforeDiscovery {
+            $testCases = @(
+                @{
+                    ExpectedParameterSetName = 'ByInputObject'
+                    ExpectedParameters = '-InputObject <psobject[]> -Path <string> [-AssetName <string>] [-MaxRetries <int>] [-FileHash <Object>] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]'
+                }
+                @{
+                    ExpectedParameterSetName = 'ByUri'
+                    ExpectedParameters = '-Path <string> -Uri <uri> [-AssetName <string>] [-MaxRetries <int>] [-FileHash <Object>] [-Force] [-WhatIf] [-Confirm] [<CommonParameters>]'
+                }
+            )
+        }
+
+        It 'Should have the correct parameters in parameter set <ExpectedParameterSetName>' -ForEach $testCases {
+            $result = (Get-Command -Name 'Save-GitHubReleaseAsset').ParameterSets |
+                Where-Object -FilterScript { $_.Name -eq $ExpectedParameterSetName } |
+                Select-Object -Property @(
+                    @{ Name = 'ParameterSetName'; Expression = { $_.Name } },
+                    @{ Name = 'ParameterListAsString'; Expression = { $_.ToString() } }
+                )
+
+            $result.ParameterSetName | Should -Be $ExpectedParameterSetName
+            $result.ParameterListAsString | Should -Be $ExpectedParameters
+        }
+    }
+
     Context 'When downloading assets with valid input' {
         BeforeAll {
             # Create mock assets
