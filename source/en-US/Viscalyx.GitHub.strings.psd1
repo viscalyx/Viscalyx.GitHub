@@ -34,6 +34,7 @@ ConvertFrom-StringData @'
     Save_GitHubReleaseAsset_VerifyingHash = Verifying file hash for asset '{0}'. (SGRA0010)
     Save_GitHubReleaseAsset_HashMismatch = File hash mismatch for asset '{0}'. Expected: {1}, Actual: {2}. The downloaded file has been deleted. (SGRA0011)
     Save_GitHubReleaseAsset_HashVerified = File hash verified successfully for asset '{0}'. (SGRA0012)
+    Save_GitHubReleaseAsset_PathIsFile = The specified path '{0}' is a file. Please provide a directory path. (SGRA0013)
 
     ## Invoke-UrlDownload
     Invoke_UrlDownload_DownloadingFile = Downloading file from {0} to {1}.

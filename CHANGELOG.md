@@ -44,6 +44,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   pipeline handling of multiple release objects.
 - Bump action Stale to v10.
 - Bump action Checkout to v5.
+- Enhanced `Save-GitHubReleaseAsset` command with:
+  - Added validation to check if the specified `Path` is a file rather than a
+    directory, outputting a non-terminating error when a file path is provided.
 - Enhanced `Invoke-UrlDownload` private function with:
   - Added `-Force` parameter to allow overwriting existing files.
   - Added file existence check that skips download if file already exists

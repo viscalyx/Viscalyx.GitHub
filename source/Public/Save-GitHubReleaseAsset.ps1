@@ -106,6 +106,13 @@ function Save-GitHubReleaseAsset
         $InputObject,
 
         [Parameter(Mandatory = $true)]
+        [ValidateScript({
+            if (Test-Path -Path $_ -PathType Leaf)
+            {
+                throw ($script:localizedData.Save_GitHubReleaseAsset_PathIsFile -f $_)
+            }
+            return $true
+        })]
         [System.String]
         $Path,
 
