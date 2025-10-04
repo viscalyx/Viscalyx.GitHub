@@ -39,7 +39,7 @@ ConvertFrom-StringData @'
     Save_GitHubReleaseAsset_ShouldProcessConfirmation = Are you sure you want to create the directory and download assets?
     Save_GitHubReleaseAsset_ShouldProcessCaption = Create directory for downloads
     Save_GitHubReleaseAsset_ShouldProcessDownloadDescription = Download asset '{0}' to '{1}'
-    Save_GitHubReleaseAsset_ShouldProcessDownloadQuestion = Are you sure you want to download this asset?
+    Save_GitHubReleaseAsset_ShouldProcessDownloadConfirmation = Are you sure you want to download this asset?
     Save_GitHubReleaseAsset_ShouldProcessDownloadCaption = Download GitHub release asset
     Save_GitHubReleaseAsset_SkippedByUser = Asset '{0}' download was skipped by user. (SGRA0014)
     Save_GitHubReleaseAsset_Progress_DownloadingAssets_Activity = Downloading GitHub Release Assets (SGRA0015)

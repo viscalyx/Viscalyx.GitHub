@@ -262,7 +262,7 @@ function Save-GitHubReleaseAsset
 
             # Check if user approves downloading this asset
             $shouldProcessDescriptionMessage = $script:localizedData.Save_GitHubReleaseAsset_ShouldProcessDownloadDescription -f $asset.name, $destination
-            $shouldProcessConfirmationMessage = $script:localizedData.Save_GitHubReleaseAsset_ShouldProcessDownloadQuestion
+            $shouldProcessConfirmationMessage = $script:localizedData.Save_GitHubReleaseAsset_ShouldProcessDownloadConfirmation
             $shouldProcessCaptionMessage = $script:localizedData.Save_GitHubReleaseAsset_ShouldProcessDownloadCaption
 
             if (-not $PSCmdlet.ShouldProcess($shouldProcessDescriptionMessage, $shouldProcessConfirmationMessage, $shouldProcessCaptionMessage))
