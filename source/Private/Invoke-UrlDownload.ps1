@@ -32,6 +32,15 @@
 
         Downloads a file from example.com and overwrites any existing file at the specified path.
 
+    .INPUTS
+        None. This function does not accept pipeline input.
+
+    .OUTPUTS
+        System.Boolean
+
+        Returns $true if the download was successful, or $false if the download was skipped
+        because the file already exists (when -Force is not specified).
+
     .NOTES
         This function is designed to be used internally by other commands within the module.
 #>
