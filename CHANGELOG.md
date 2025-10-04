@@ -29,8 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Prefixed all command invocations in integration tests with `Viscalyx.GitHub\`
-  to ensure module-qualified calls and prevent conflicts with other modules.
 
 - Refactored `Get-GitHubReleaseAsset` to use parameter sets for better
   distinction between direct repository queries and pipeline input scenarios.
