@@ -50,14 +50,12 @@ Describe 'Invoke-UrlDownload' {
         }
 
         It 'Should create the directory when it does not exist' {
-            # Arrange
             $testUri = 'https://example.com/file.zip'
             $testOutputPath = Join-Path -Path 'TestDrive:' -ChildPath 'Downloads' | Join-Path -ChildPath 'NewFolder' | Join-Path -ChildPath 'file.zip'
             $expectedDirectory = Split-Path -Path $testOutputPath -Parent
 
             Mock -CommandName Test-Path -MockWith { $false }
 
-            # Act
             $result = InModuleScope -ScriptBlock {
                 param($Uri, $Path)
                 Invoke-UrlDownload -Uri $Uri -OutputPath $Path
@@ -66,7 +64,6 @@ Describe 'Invoke-UrlDownload' {
                 Path = $testOutputPath
             }
 
-            # Assert
             $result | Should -BeTrue
             Should -Invoke -CommandName New-Item -ParameterFilter {
                 $ItemType -eq 'Directory' -and
@@ -75,7 +72,6 @@ Describe 'Invoke-UrlDownload' {
         }
 
         It 'Should not create the directory when it already exists' {
-            # Arrange
             $testUri = 'https://example.com/file.zip'
             $testOutputPath = Join-Path -Path 'TestDrive:' -ChildPath 'Downloads' | Join-Path -ChildPath 'ExistingFolder' | Join-Path -ChildPath 'file.zip'
             $expectedDirectory = Split-Path -Path $testOutputPath -Parent
@@ -86,7 +82,6 @@ Describe 'Invoke-UrlDownload' {
                 $Path -eq $expectedDirectory
             }
 
-            # Act
             $result = InModuleScope -ScriptBlock {
                 param($Uri, $Path)
                 Invoke-UrlDownload -Uri $Uri -OutputPath $Path
@@ -95,13 +90,11 @@ Describe 'Invoke-UrlDownload' {
                 Path = $testOutputPath
             }
 
-            # Assert
             $result | Should -BeTrue
             Should -Invoke -CommandName New-Item -Exactly -Times 0 -Scope It
         }
 
         It 'Should throw a terminating error when directory creation fails' {
-            # Arrange
             $testUri = 'https://example.com/file.zip'
             $testOutputPath = Join-Path -Path 'TestDrive:' -ChildPath 'InvalidPath' | Join-Path -ChildPath 'file.zip'
             $expectedDirectory = Split-Path -Path $testOutputPath -Parent
@@ -114,7 +107,6 @@ Describe 'Invoke-UrlDownload' {
 
             $mockLocalizedError = InModuleScope -ScriptBlock { $script:localizedData.Invoke_UrlDownload_DirectoryCreationError }
 
-            # Act & Assert
             {
                 InModuleScope -ScriptBlock {
                     param($Uri, $Path)
@@ -137,11 +129,9 @@ Describe 'Invoke-UrlDownload' {
         }
 
         It 'Should return true when the download completes successfully' {
-            # Arrange
             $testUri = 'https://example.com/file.zip'
             $testOutputPath = Join-Path -Path 'TestDrive:' -ChildPath 'Downloads' | Join-Path -ChildPath 'file.zip'
 
-            # Act
             $result = InModuleScope -ScriptBlock {
                 param($Uri, $Path)
                 Invoke-UrlDownload -Uri $Uri -OutputPath $Path
@@ -150,7 +140,6 @@ Describe 'Invoke-UrlDownload' {
                 Path = $testOutputPath
             }
 
-            # Assert
             $result | Should -BeTrue
 
             # UseBasicParsing only exists on Desktop edition (PS 5.1)
@@ -174,12 +163,10 @@ Describe 'Invoke-UrlDownload' {
         }
 
         It 'Should use the provided user agent' {
-            # Arrange
             $testUri = 'https://example.com/file.zip'
             $testOutputPath = Join-Path -Path 'TestDrive:' -ChildPath 'Downloads' | Join-Path -ChildPath 'file.zip'
             $testUserAgent = 'CustomAgent'
 
-            # Act
             $result = InModuleScope -ScriptBlock {
                 param($Uri, $Path, $Agent)
                 Invoke-UrlDownload -Uri $Uri -OutputPath $Path -UserAgent $Agent
@@ -189,7 +176,6 @@ Describe 'Invoke-UrlDownload' {
                 Agent = $testUserAgent
             }
 
-            # Assert
             $result | Should -BeTrue
 
             # UseBasicParsing only exists on Desktop edition (PS 5.1)
@@ -219,13 +205,11 @@ Describe 'Invoke-UrlDownload' {
         }
 
         It 'Should skip download and return true when file exists and Force is not specified' {
-            # Arrange
             $testUri = 'https://example.com/file.zip'
             $testOutputPath = Join-Path -Path 'TestDrive:' -ChildPath 'Downloads' | Join-Path -ChildPath 'file.zip'
 
             Mock -CommandName Test-Path -MockWith { $true }
 
-            # Act
             $result = InModuleScope -ScriptBlock {
                 param($Uri, $Path)
                 Invoke-UrlDownload -Uri $Uri -OutputPath $Path
@@ -234,19 +218,16 @@ Describe 'Invoke-UrlDownload' {
                 Path = $testOutputPath
             }
 
-            # Assert
             $result | Should -BeTrue
             Should -Invoke -CommandName Invoke-WebRequest -Exactly -Times 0 -Scope It
         }
 
         It 'Should download file when file exists and Force is specified' {
-            # Arrange
             $testUri = 'https://example.com/file.zip'
             $testOutputPath = Join-Path -Path 'TestDrive:' -ChildPath 'Downloads' | Join-Path -ChildPath 'file.zip'
 
             Mock -CommandName Test-Path -MockWith { $true }
 
-            # Act
             $result = InModuleScope -ScriptBlock {
                 param($Uri, $Path)
                 Invoke-UrlDownload -Uri $Uri -OutputPath $Path -Force
@@ -255,7 +236,6 @@ Describe 'Invoke-UrlDownload' {
                 Path = $testOutputPath
             }
 
-            # Assert
             $result | Should -BeTrue
             Should -Invoke -CommandName Invoke-WebRequest -Exactly -Times 1 -Scope It
         }
@@ -267,7 +247,6 @@ Describe 'Invoke-UrlDownload' {
         }
 
         It 'Should return false and write a network error when download fails with WebException' {
-            # Arrange
             $testUri = 'https://example.com/file.zip'
             $testOutputPath = Join-Path -Path 'TestDrive:' -ChildPath 'Downloads' | Join-Path -ChildPath 'file.zip'
 
@@ -279,7 +258,6 @@ Describe 'Invoke-UrlDownload' {
                 throw $webException
             }
 
-            # Act
             {
                 InModuleScope -ScriptBlock {
                     param($Uri, $Path)
@@ -292,7 +270,6 @@ Describe 'Invoke-UrlDownload' {
         }
 
         It 'Should return false and write a not found error when download fails with 404' {
-            # Arrange
             $testUri = 'https://example.com/file.zip'
             $testOutputPath = Join-Path -Path 'TestDrive:' -ChildPath 'Downloads' | Join-Path -ChildPath 'file.zip'
 
@@ -315,7 +292,6 @@ Describe 'Invoke-UrlDownload' {
                 throw $webException
             }
 
-            # Act
             {
                 InModuleScope -ScriptBlock {
                     param($Uri, $Path)
@@ -328,7 +304,6 @@ Describe 'Invoke-UrlDownload' {
         }
 
         It 'Should return false and write an unauthorized error when download fails with 401' {
-            # Arrange
             $testUri = 'https://example.com/file.zip'
             $testOutputPath = Join-Path -Path 'TestDrive:' -ChildPath 'Downloads' | Join-Path -ChildPath 'file.zip'
 
@@ -351,7 +326,6 @@ Describe 'Invoke-UrlDownload' {
                 throw $webException
             }
 
-            # Act
             {
                 InModuleScope -ScriptBlock {
                     param($Uri, $Path)
@@ -370,7 +344,6 @@ Describe 'Invoke-UrlDownload' {
         }
 
         It 'Should return false and write a permission error when download fails with UnauthorizedAccessException' {
-            # Arrange
             $testUri = 'https://example.com/file.zip'
             $testOutputPath = Join-Path -Path 'TestDrive:' -ChildPath 'Downloads' | Join-Path -ChildPath 'file.zip'
 
@@ -381,7 +354,6 @@ Describe 'Invoke-UrlDownload' {
                 throw [System.UnauthorizedAccessException]::new('Access to the path is denied.')
             }
 
-            # Act
             {
                 InModuleScope -ScriptBlock {
                     param($Uri, $Path)
@@ -400,7 +372,6 @@ Describe 'Invoke-UrlDownload' {
         }
 
         It 'Should return false and write an unknown error when download fails with generic exception' {
-            # Arrange
             $testUri = 'https://example.com/file.zip'
             $testOutputPath = Join-Path -Path 'TestDrive:' -ChildPath 'Downloads' | Join-Path -ChildPath 'file.zip'
 
@@ -411,7 +382,6 @@ Describe 'Invoke-UrlDownload' {
                 throw 'An unexpected error occurred'
             }
 
-            # Act
             {
                 InModuleScope -ScriptBlock {
                     param($Uri, $Path)

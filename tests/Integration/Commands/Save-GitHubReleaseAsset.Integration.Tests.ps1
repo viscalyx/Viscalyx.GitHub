@@ -51,7 +51,6 @@ Describe 'Save-GitHubReleaseAsset' {
                 return
             }
 
-            # Act
             $null = $asset | Save-GitHubReleaseAsset -Path $TestDrive -Confirm:$false -Overwrite
 
             # Assert - check if files were downloaded
