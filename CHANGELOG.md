@@ -12,10 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   with options to filter by latest, prerelease, and draft statuses.
 - New command `Get-GitHubReleaseAsset` to retrieve metadata information
   about assets from GitHub repository releases.
-- New command `Save-GitHubReleaseAsset` to download GitHub release assets to
-  a local path with support for multiple download methods, asset name filtering,
-  file integrity validation using SHA256 hashes, and progress indication during
-  downloads.
+- New command `Save-GitHubReleaseAsset` to download GitHub release assets with
+  asset filtering, SHA256 hash validation, retry logic, and progress indication.
 - Private function `Convert-SecureStringAsPlainText` to safely handle secure
   string conversions for GitHub authentication tokens.
 - Private function `Invoke-UrlDownload` to handle file downloads with proper
@@ -25,16 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added additional example to `Get-GitHubReleaseAsset` documentation showing
   how to use the pipeline functionality for efficient workflow.
 - Added integration tests for the new pipeline functionality.
-- Added comprehensive unit tests for `Save-GitHubReleaseAsset` command covering
-  various download scenarios, error handling, and edge cases.
-- Added unit tests for `Invoke-UrlDownload` private function to ensure reliable
-  file download functionality.
-- Added integration tests for `Save-GitHubReleaseAsset` to verify real-world
-  download capabilities with public GitHub repositories.
-- Added localized string resources for `Save-GitHubReleaseAsset` and
-  `Invoke-UrlDownload` functions to support proper error messaging and user feedback.
-- Added project documentation improvements including build instructions and
-  test execution guidelines for development workflow.
+- Added unit and integration tests for `Save-GitHubReleaseAsset` and
+  `Invoke-UrlDownload` with comprehensive coverage of download scenarios.
+- Added localized strings and documentation for new download functionality.
 
 ### Changed
 
@@ -44,29 +35,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   pipeline handling of multiple release objects.
 - Bump action Stale to v10.
 - Bump action Checkout to v5.
-- Enhanced `Save-GitHubReleaseAsset` command with:
-  - Added validation to check if the specified `Path` is a file rather than a
-    directory, outputting a non-terminating error when a file path is provided.
-  - Added `SupportsShouldProcess` to enable `-WhatIf` and `-Confirm` support
-    for directory creation and file download operations, with `ConfirmImpact`
-    set to `Medium` to prompt for confirmation when `$ConfirmPreference` is
-    appropriately configured.
-- Enhanced `Invoke-UrlDownload` private function with:
-  - Added `-Force` parameter to allow overwriting existing files.
-  - Added file existence check that skips download if file already exists
-    (unless `-Force` is specified).
-  - Added directory validation that creates the output directory if it does not
-    exist, preventing runtime failures during file downloads.
-    (unless `-Force` is specified).
-  - Enhanced error handling to differentiate between network errors (404, 401,
-    general network issues), permission errors, and unknown errors with
-    specific localized error messages for better troubleshooting.
-- Enhanced `Save-GitHubReleaseAsset` command with:
-  - Added `-Force` parameter that is passed through to `Invoke-UrlDownload` to
-    allow overwriting existing downloaded files.
-  - Improved error reporting for download failures and hash mismatches by
-    including full error metadata (ErrorId, Category, TargetObject) to provide
-    better diagnostic information for troubleshooting.
+- Enhanced `Save-GitHubReleaseAsset` with path validation, `SupportsShouldProcess`
+  for `-WhatIf` and `-Confirm`, `-Force` parameter, and improved error reporting.
+- Enhanced `Invoke-UrlDownload` with `-Force` parameter, automatic directory
+  creation, file overwrite protection, and improved error handling.
 
 ### Fixed
 
