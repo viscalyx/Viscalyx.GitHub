@@ -71,26 +71,29 @@ function Invoke-UrlDownload
     # Validate and create output directory if needed
     $outputDirectory = Split-Path -Path $OutputPath -Parent
 
-    if (-not (Test-Path -Path $outputDirectory))
+    if (-not [string]::IsNullOrWhiteSpace($outputDirectory))
     {
-        try
+        if (-not (Test-Path -Path $outputDirectory))
         {
-            Write-Verbose -Message ($script:localizedData.Invoke_UrlDownload_CreatingDirectory -f $outputDirectory)
+            try
+            {
+                Write-Verbose -Message ($script:localizedData.Invoke_UrlDownload_CreatingDirectory -f $outputDirectory)
 
-            $null = New-Item -Path $outputDirectory -ItemType Directory -Force -ErrorAction Stop
-        }
-        catch
-        {
-            $errorMessage = $script:localizedData.Invoke_UrlDownload_DirectoryCreationError -f $outputDirectory, $_.Exception.Message
+                $null = New-Item -Path $outputDirectory -ItemType Directory -Force -ErrorAction Stop
+            }
+            catch
+            {
+                $errorMessage = $script:localizedData.Invoke_UrlDownload_DirectoryCreationError -f $outputDirectory, $_.Exception.Message
 
-            $PSCmdlet.ThrowTerminatingError(
-                [System.Management.Automation.ErrorRecord]::new(
-                    ($errorMessage),
-                    'IUD0001',
-                    [System.Management.Automation.ErrorCategory]::InvalidOperation,
-                    $outputDirectory
+                $PSCmdlet.ThrowTerminatingError(
+                    [System.Management.Automation.ErrorRecord]::new(
+                        ($errorMessage),
+                        'IUD0001',
+                        [System.Management.Automation.ErrorCategory]::InvalidOperation,
+                        $outputDirectory
+                    )
                 )
-            )
+            }
         }
     }
 

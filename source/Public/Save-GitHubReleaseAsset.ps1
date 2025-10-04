@@ -373,11 +373,12 @@ function Save-GitHubReleaseAsset
                 {
                     Write-Verbose -Message ($script:localizedData.Save_GitHubReleaseAsset_VerifyingHash -f $asset.name)
 
-                    $actualHash = (Get-FileHash -Path $destination -Algorithm SHA256).Hash
+                    $hashMatches = Test-FileHash -Path $destination -Algorithm SHA256 -ExpectedHash $expectedHash
 
-                    if ($actualHash -ne $expectedHash)
+                    if (-not $hashMatches)
                     {
-                        # Hash mismatch - delete the file and write error
+                        # Hash mismatch - get actual hash before deleting, then delete the file and write error
+                        $actualHash = (Get-FileHash -Path $destination -Algorithm SHA256).Hash
                         Remove-Item -Path $destination -Force
 
                         $errorMessage = $script:localizedData.Save_GitHubReleaseAsset_HashMismatch -f $asset.name, $expectedHash, $actualHash
