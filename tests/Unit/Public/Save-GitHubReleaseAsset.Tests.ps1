@@ -487,7 +487,7 @@ Describe 'Save-GitHubReleaseAsset' {
         }
 
         It 'Should handle null asset input without throwing errors or invoking downloads' {
-            { Save-GitHubReleaseAsset -InputObject $null -Path 'TestDrive:\Downloads' -Confirm:$false } | Should -Not -Throw
+            $null = Save-GitHubReleaseAsset -InputObject $null -Path 'TestDrive:\Downloads' -Confirm:$false
 
             Should -Not -Invoke -CommandName Invoke-UrlDownload
             Should -Invoke -CommandName Write-Error
