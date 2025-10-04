@@ -234,7 +234,6 @@ Describe 'Save-GitHubReleaseAsset' {
         }
 
         It 'Should report errors for failed downloads' {
- - disable retries to make assertions predictable
             {
                 $mockAssets |
                 Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -MaxRetries 0 -Confirm:$false -ErrorAction 'Stop'
@@ -498,7 +497,6 @@ Describe 'Save-GitHubReleaseAsset' {
         }
 
         It 'Should handle null asset input without throwing errors or invoking downloads' {
- & Assert - Should not throw
             { Save-GitHubReleaseAsset -InputObject $null -Path 'TestDrive:\Downloads' -Confirm:$false } | Should -Not -Throw
 
             Should -Not -Invoke -CommandName Invoke-UrlDownload
@@ -616,7 +614,6 @@ Describe 'Save-GitHubReleaseAsset' {
                 return $true
             }
 
- - WhatIf should skip the download
             $mockAsset | Save-GitHubReleaseAsset -Path 'TestDrive:\Downloads' -WhatIf
 
             # Assert - download should not be called
