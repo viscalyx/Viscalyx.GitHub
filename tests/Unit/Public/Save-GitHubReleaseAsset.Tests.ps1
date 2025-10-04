@@ -621,15 +621,11 @@ Describe 'Save-GitHubReleaseAsset' {
         }
 
         It 'Should skip download when user declines ShouldProcess for individual asset' {
-            BeforeAll {
-                # Mock Test-Path to return true (directory exists)
-                Mock -CommandName Test-Path -ParameterFilter {
-                    $Path -eq 'TestDrive:\Downloads'
-                } -MockWith {
-                    return $true
-                }
-
-                # Mock ShouldProcess to return false for download but we need to test via WhatIf
+            # Mock Test-Path to return true (directory exists)
+            Mock -CommandName Test-Path -ParameterFilter {
+                $Path -eq 'TestDrive:\Downloads'
+            } -MockWith {
+                return $true
             }
 
             # Act - WhatIf should skip the download
