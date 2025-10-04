@@ -45,8 +45,8 @@ AfterAll {
 Describe 'Invoke-UrlDownload' {
     Context 'When validating output directory' {
         BeforeAll {
-            Mock -CommandName Invoke-WebRequest -MockWith { }
-            Mock -CommandName New-Item -MockWith { }
+            Mock -CommandName Invoke-WebRequest
+            Mock -CommandName New-Item
         }
 
         It 'Should create the directory when it does not exist' {
@@ -132,7 +132,7 @@ Describe 'Invoke-UrlDownload' {
     Context 'When downloading a file successfully' {
         BeforeAll {
             # Mock Invoke-WebRequest to simulate successful download
-            Mock -CommandName Invoke-WebRequest -MockWith { }
+            Mock -CommandName Invoke-WebRequest
             Mock -CommandName Test-Path -MockWith { $false }
         }
 
@@ -215,7 +215,7 @@ Describe 'Invoke-UrlDownload' {
 
     Context 'When the file already exists' {
         BeforeAll {
-            Mock -CommandName Invoke-WebRequest -MockWith { }
+            Mock -CommandName Invoke-WebRequest
         }
 
         It 'Should skip download and return true when file exists and Force is not specified' {

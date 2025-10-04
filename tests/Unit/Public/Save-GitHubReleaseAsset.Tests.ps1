@@ -118,10 +118,10 @@ Describe 'Save-GitHubReleaseAsset' {
             }
 
             # Mock Write-Warning
-            Mock -CommandName Write-Warning -MockWith { }
+            Mock -CommandName Write-Warning
 
             # Mock Write-Error
-            Mock -CommandName Write-Error -MockWith { }
+            Mock -CommandName Write-Error
         }
 
         It 'Should create the download directory if it does not exist' {
@@ -236,7 +236,7 @@ Describe 'Save-GitHubReleaseAsset' {
             }
 
             # Mock Write-Error
-            Mock -CommandName Write-Error -MockWith { }
+            Mock -CommandName Write-Error
         }
 
         It 'Should report errors for failed downloads' {
@@ -271,10 +271,10 @@ Describe 'Save-GitHubReleaseAsset' {
             }
 
             # Mock Write-Error
-            Mock -CommandName Write-Error -MockWith { }
+            Mock -CommandName Write-Error
 
             # Mock Start-Sleep to avoid actual delays in tests
-            Mock -CommandName Start-Sleep -MockWith { }
+            Mock -CommandName Start-Sleep
         }
 
         It 'Should retry failed download up to MaxRetries times' {
