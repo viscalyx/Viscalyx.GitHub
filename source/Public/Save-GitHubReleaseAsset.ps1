@@ -49,12 +49,20 @@
 
         Downloads a specific PowerShell MSI and saves it as 'custom-name.msi' in the C:\Downloads directory.
 
-    .NOTES
-        This command shows download progress using Write-Progress and processes multiple assets sequentially.
+    .INPUTS
+        System.Management.Automation.PSObject
+
+        Accepts GitHub release asset objects with 'name' and 'browser_download_url' properties.
+
+    .OUTPUTS
+        None
+
+        This command does not generate output.
 #>
 function Save-GitHubReleaseAsset
 {
     [CmdletBinding(DefaultParameterSetName = 'ByInputObject')]
+    [OutputType()]
     param
     (
         [Parameter(Mandatory = $true, ValueFromPipeline = $true, ParameterSetName = 'ByInputObject')]

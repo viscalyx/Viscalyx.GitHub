@@ -22,14 +22,14 @@ ConvertFrom-StringData @'
     Convert_SecureStringAsPlainText_Converting = 'Converting SecureString to plain text.'
 
     ## Save-GitHubReleaseAsset
-    Save_GitHubReleaseAsset_CreatingDirectory = Creating download directory '{0}'.
-    Save_GitHubReleaseAsset_AssetFiltered = Asset '{0}' does not match the filter '{1}', skipping.
-    Save_GitHubReleaseAsset_NoAssetsToDownload = No assets were found to download.
-    Save_GitHubReleaseAsset_DownloadingAssets = Downloading {0} GitHub release assets.
-    Save_GitHubReleaseAsset_DownloadingAsset = Downloading asset '{0}' to '{1}'.
-    Save_GitHubReleaseAsset_DownloadFailed = Failed to download asset '{0}'.
-    Save_GitHubReleaseAsset_DownloadsCompleted = All downloads completed.
-    Save_GitHubReleaseAsset_UsingDirectUri = Using direct URI '{0}' for asset '{1}'.
+    Save_GitHubReleaseAsset_CreatingDirectory = Creating download directory '{0}'. (SGRA0001)
+    Save_GitHubReleaseAsset_AssetFiltered = Asset '{0}' does not match the filter '{1}', skipping. (SGRA0002)
+    Save_GitHubReleaseAsset_NoAssetsToDownload = No assets were found to download. (SGRA0003)
+    Save_GitHubReleaseAsset_DownloadingAssets = Downloading {0} GitHub release assets. (SGRA0004)
+    Save_GitHubReleaseAsset_DownloadingAsset = Downloading asset '{0}' to '{1}'. (SGRA0005)
+    Save_GitHubReleaseAsset_DownloadFailed = Failed to download asset '{0}'. (SGRA0006)
+    Save_GitHubReleaseAsset_DownloadsCompleted = All downloads completed. (SGRA0007)
+    Save_GitHubReleaseAsset_UsingDirectUri = Using direct URI '{0}' for asset '{1}'. (SGRA0008)
 
     ## Invoke-UrlDownload
     Invoke_UrlDownload_DownloadingFile = Downloading file from {0} to {1}.
