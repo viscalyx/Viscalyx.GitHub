@@ -30,16 +30,20 @@ BeforeAll {
 
     # Setup GitHub token for authentication to avoid rate limiting
     $script:gitHubToken = $null
-    if ($env:GITHUB_TOKEN)
+    if ($env:INTEG_TEMP_GITHUB_TOKEN)
     {
-        $script:gitHubToken = ConvertTo-SecureString -String $env:GITHUB_TOKEN -AsPlainText -Force
+        $script:gitHubToken = ConvertTo-SecureString -String $env:INTEG_TEMP_GITHUB_TOKEN -AsPlainText -Force
+    }
+    else
+    {
+        throw 'Missing environment varable secret INTEG_TEMP_GITHUB_TOKEN.'
     }
 }
 
 Describe 'Get-GitHubReleaseAsset' {
     Context 'When retrieving release asset metadata from a public repository' {
         BeforeAll {
-            $getGitHubReleaseParameters = @{
+            $getGitHubReleaseAssetParameters = @{
                 OwnerName = 'PowerShell'
                 RepositoryName = 'PowerShell'
                 AssetName = 'PowerShell-*.zip'
@@ -47,16 +51,16 @@ Describe 'Get-GitHubReleaseAsset' {
 
             if ($script:gitHubToken)
             {
-                $getGitHubReleaseParameters.Token = $script:gitHubToken
+                $getGitHubReleaseAssetParameters.Token = $script:gitHubToken
             }
         }
 
         It 'Should not throw when retrieving the latest release asset' {
-            { Viscalyx.GitHub\Get-GitHubReleaseAsset @getGitHubReleaseParameters } | Should -Not -Throw
+            { Viscalyx.GitHub\Get-GitHubReleaseAsset @getGitHubReleaseAssetParameters } | Should -Not -Throw
         }
 
         It 'Should return the correct metadata format' {
-            $result = Viscalyx.GitHub\Get-GitHubReleaseAsset @getGitHubReleaseParameters
+            $result = Viscalyx.GitHub\Get-GitHubReleaseAsset @getGitHubReleaseAssetParameters
 
             $result | Should -Not -BeNullOrEmpty
             $result.Name | Should -Match 'PowerShell-.*\.zip$'
@@ -67,7 +71,7 @@ Describe 'Get-GitHubReleaseAsset' {
 
     Context 'When retrieving release asset with IncludePrerelease' {
         BeforeAll {
-            $getGitHubReleaseParameters = @{
+            $getGitHubReleaseAssetParameters = @{
                 OwnerName = 'PowerShell'
                 RepositoryName = 'PowerShell'
                 AssetName = 'PowerShell-*.zip'
@@ -76,18 +80,18 @@ Describe 'Get-GitHubReleaseAsset' {
 
             if ($script:gitHubToken)
             {
-                $getGitHubReleaseParameters.Token = $script:gitHubToken
+                $getGitHubReleaseAssetParameters.Token = $script:gitHubToken
             }
         }
 
         It 'Should not throw when retrieving the latest release asset including prereleases' {
-            { Viscalyx.GitHub\Get-GitHubReleaseAsset @getGitHubReleaseParameters } | Should -Not -Throw
+            { Viscalyx.GitHub\Get-GitHubReleaseAsset @getGitHubReleaseAssetParameters } | Should -Not -Throw
         }
     }
 
     Context 'When repository does not exist' {
         BeforeAll {
-            $getGitHubReleaseParameters = @{
+            $getGitHubReleaseAssetParameters = @{
                 OwnerName = 'PowerShell'
                 RepositoryName = 'NonExistentRepository9876543210'
                 AssetName = 'test.zip'
@@ -95,18 +99,18 @@ Describe 'Get-GitHubReleaseAsset' {
 
             if ($script:gitHubToken)
             {
-                $getGitHubReleaseParameters.Token = $script:gitHubToken
+                $getGitHubReleaseAssetParameters.Token = $script:gitHubToken
             }
         }
 
         It 'Should throw when accessing a nonexistent repository' {
-            { Viscalyx.GitHub\Get-GitHubReleaseAsset @getGitHubReleaseParameters -ErrorAction 'Stop' } | Should -Throw
+            { Viscalyx.GitHub\Get-GitHubReleaseAsset @getGitHubReleaseAssetParameters -ErrorAction 'Stop' } | Should -Throw
         }
     }
 
     Context 'When asset does not exist' {
         BeforeAll {
-            $getGitHubReleaseParameters = @{
+            $getGitHubReleaseAssetParameters = @{
                 OwnerName = 'PowerShell'
                 RepositoryName = 'PowerShell'
                 AssetName = 'NonExistentAsset9876543210.zip'
@@ -114,13 +118,13 @@ Describe 'Get-GitHubReleaseAsset' {
 
             if ($script:gitHubToken)
             {
-                $getGitHubReleaseParameters.Token = $script:gitHubToken
+                $getGitHubReleaseAssetParameters.Token = $script:gitHubToken
             }
         }
 
         It 'Should not throw but return null when the asset is not found' {
             {
-                $result = Viscalyx.GitHub\Get-GitHubReleaseAsset @getGitHubReleaseParameters -ErrorAction 'Stop'
+                $result = Viscalyx.GitHub\Get-GitHubReleaseAsset @getGitHubReleaseAssetParameters -ErrorAction 'Stop'
             } |  Should -Throw
         }
     }
