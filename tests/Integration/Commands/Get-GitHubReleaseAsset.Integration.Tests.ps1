@@ -30,9 +30,13 @@ BeforeAll {
 
     # Setup GitHub token for authentication to avoid rate limiting
     $script:gitHubToken = $null
-    if ($env:GITHUB_TOKEN)
+    if ($env:INTEG_TEMP_GITHUB_TOKEN)
     {
-        $script:gitHubToken = ConvertTo-SecureString -String $env:GITHUB_TOKEN -AsPlainText -Force
+        $script:gitHubToken = ConvertTo-SecureString -String $env:INTEG_TEMP_GITHUB_TOKEN -AsPlainText -Force
+    }
+    else
+    {
+        throw 'Missing environment varable secret INTEG_TEMP_GITHUB_TOKEN.'
     }
 }
 
