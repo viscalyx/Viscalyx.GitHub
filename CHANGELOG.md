@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump action codeql-action/upload-sarif to v4
 - Bump action checkout to v7
 - Bump action Stale to v11
+- Bump github/codeql-action to v4.37.4
 
 ## [0.2.0] - 2025-10-04
 
