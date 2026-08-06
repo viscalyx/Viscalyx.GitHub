@@ -27,6 +27,17 @@ BeforeAll {
     $script:moduleName = 'Viscalyx.GitHub'
 
     Import-Module -Name $script:moduleName -Force -ErrorAction 'Stop'
+
+    # Setup GitHub token for authentication to avoid rate limiting
+    $script:gitHubToken = $null
+    if ($env:INTEG_TEMP_GITHUB_TOKEN)
+    {
+        $script:gitHubToken = ConvertTo-SecureString -String $env:INTEG_TEMP_GITHUB_TOKEN -AsPlainText -Force
+    }
+    else
+    {
+        throw 'Missing environment varable secret INTEG_TEMP_GITHUB_TOKEN.'
+    }
 }
 
 Describe 'Save-GitHubReleaseAsset' {
@@ -38,11 +49,22 @@ Describe 'Save-GitHubReleaseAsset' {
 
             # Define a small asset to download for testing
             $assetNamePattern = 'hashes.sha256'  # Usually a small file
+
+            $getGitHubReleaseAssetParameters = @{
+                OwnerName = $owner
+                RepositoryName = $repo
+                AssetName = $assetNamePattern
+            }
+
+            if ($script:gitHubToken)
+            {
+                $getGitHubReleaseAssetParameters.Token = $script:gitHubToken
+            }
         }
 
         It 'Should download assets when filtering by name' {
             # Get release assets that match our pattern
-            $asset = Viscalyx.GitHub\Get-GitHubReleaseAsset -Owner $owner -Repository $repo -AssetName $assetNamePattern -ErrorAction Stop |
+            $asset = Viscalyx.GitHub\Get-GitHubReleaseAsset @getGitHubReleaseAssetParameters -ErrorAction Stop |
                       Select-Object -First 1
 
             # Skip the test if no assets are found
